@@ -1,0 +1,2 @@
+/home/alissa/Documents/development/sysread/bin/CMakeFiles/edit_cache.dir
+/home/alissa/Documents/development/sysread/bin/CMakeFiles/rebuild_cache.dir
