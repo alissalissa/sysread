@@ -9,6 +9,7 @@
 #define PADDING_SIZE 3
 
 #include <stdbool.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -29,7 +30,7 @@ typedef struct sysheader {
 }sysheader_t;
 
 //Construction/destruction
-sysheader_t sysheader_new(char*,char*,int32_t,int32_t,int32_t,int32_t,int32_t,float,char*,char*,char*,char*); //only intended for internal use
+sysheader_t *sysheader_new(char*,char*,int32_t,int32_t,int32_t,int32_t,int32_t,float,char*,char*,char*,char*); //only intended for internal use with sysheader_fnew
 bool sysheader_fnew(sysheader_t*,FILE*);
 bool sysheader_destroy(sysheader_t*);
 
