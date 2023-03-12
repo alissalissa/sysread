@@ -5,4 +5,4 @@
  Navigate to bin/ and run the make command.
 
  ## dependencies
- none
+ libc

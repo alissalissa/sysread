@@ -2,9 +2,9 @@
 default: compile
 
 #compile
-compile: sfutil.o sysread.o sysheader.o
+compile: sfutil.o sysheader.o
 	echo "Linking shared library..."
-	cc -o sysfile.so -g sfutil.o sysread.o sysheader.o -shared -fPIC
+	cc -o sysfile.so -g sfutil.o sysheader.o -shared -fPIC
 
 sfutil.o:
 	echo "Compiling sfutil.c..."
@@ -13,10 +13,6 @@ sfutil.o:
 #sysfile.o:
 #	echo "Compiling sysfile.c..."
 #	cc -g -c -o sysfile.o -I../include/ ../src/sysfile.c
-
-sysread.o:
-	echo "Compiling sysread.c..."
-	cc -g -c -o sysread.o -I../include/ ../src/sysfile.c
 
 sysheader.o:
 	echo "Compiling sysheader.c..."

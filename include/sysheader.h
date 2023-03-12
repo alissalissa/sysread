@@ -1,3 +1,5 @@
+//Defines a type to contain header data and read said data from a FILE
+
 #ifndef SYS_HEADER_H
 #define SYS_HEADER_H
 
