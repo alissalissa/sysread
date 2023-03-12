@@ -165,3 +165,11 @@ sysheader_t *sysheader_fnew(FILE *sys_file_handle){
 	return ret;
 
 }
+
+bool sysheader_destroy(sysheader_t *haystack){
+	if(!haystack->constructed)
+		return false;
+	mass_free(6,haystack->rec_type,haystack->prod_name,haystack->creation_date,haystack->creation_time,haystack->file_label,haystack->padding);
+	free(haystack);
+	return true;
+}
