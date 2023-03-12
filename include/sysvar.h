@@ -7,6 +7,8 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "stdint.h"
 #include "stdio.h"
 
@@ -26,7 +28,7 @@ typedef struct sysvar{
 }sysvar_t;
 
 //sysvar_new() is only intended for internal use, to be called by fnew
-sysvar_t *sysvar_new(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t,char*,float*);
+sysvar_t *sysvar_new(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t,char*,int32_t,char*,float*);
 sysvar_t *sysvar_fnew(FILE*);
 bool sysvar_destroy(sysvar_t*);
 

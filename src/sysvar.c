@@ -1,7 +1,7 @@
 #include "sysvar.h"
 
 sysvar_t *sysvar_new(int32_t rec_type,int32_t type,int32_t has_var_label,int32_t n_missing_values,int32_t print,int32_t write,char *name,int32_t label_length,char *label,float *missing_values){
-	sysvar_t *ret=(char*)malloc(sizeof(sysvar_t));
+	sysvar_t *ret=(sysvar_t*)malloc(sizeof(sysvar_t));
 	
 	ret->rec_type=rec_type;
 	ret->type=type;
