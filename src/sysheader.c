@@ -148,7 +148,7 @@ sysheader_t *sysheader_fnew(FILE *sys_file_handle){
 
 	for(int i=0;i<PADDING_SIZE;i++)
 		padding[i]=fgetc(sys_file_handle);
-	if(ferror(sys_file_handle) || feof(sys_file_handle)){
+	if(ferror(sys_file_handle)){
 		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
