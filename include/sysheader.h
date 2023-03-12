@@ -3,6 +3,7 @@
 
 #define REC_TYPE_SIZE 4
 #define PROD_NAME_SIZE 60
+#define PROD_NAME_CHECK_SIZE 19
 #define CREATION_DATE_SIZE 9
 #define CREATION_TIME_SIZE 8
 #define FILE_LABEL_SIZE 64
@@ -12,6 +13,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#include "sfutil.h"
 
 typedef struct sysheader {
 	char *rec_type;
@@ -31,7 +34,8 @@ typedef struct sysheader {
 
 //Construction/destruction
 sysheader_t *sysheader_new(char*,char*,int32_t,int32_t,int32_t,int32_t,int32_t,float,char*,char*,char*,char*); //only intended for internal use with sysheader_fnew
-bool sysheader_fnew(sysheader_t*,FILE*);
+//Generates a sysheader_t by reading from a file handle
+sysheader_t *sysheader_fnew(FILE*);
 bool sysheader_destroy(sysheader_t*);
 
 #endif
