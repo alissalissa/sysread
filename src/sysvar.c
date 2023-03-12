@@ -130,3 +130,20 @@ sysvar_t *sysvar_fnew(FILE *sys_handle){
 	return ret;
 
 }
+
+bool sysvar_destroy(sysvar_t *haystack){
+
+	if(!haystack->constructed)
+		return false;
+
+	if(haystack->name)
+		free(haystack->name);
+	if(haystack->label)
+		free(haystack->label);
+	if(haystack->missing_values)
+		free(haystack->missing_values);
+	free(haystack);
+
+	return true;
+
+}
