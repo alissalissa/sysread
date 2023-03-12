@@ -161,6 +161,7 @@ sysheader_t *sysheader_fnew(FILE *sys_file_handle){
 
 	//There have been no read or EOF errors, so construct the type
 	sysheader_t *ret=sysheader_new(rec_type,prod_name,layout_code,nominal_case_size,compression,weight_index,ncases,bias,creation_date,creation_time,file_label,padding);
+	mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 	return ret;
 
 }
