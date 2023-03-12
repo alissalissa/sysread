@@ -5,12 +5,12 @@
 
 #define VAR_NAME_SIZE 8
 
+#include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "stdint.h"
-#include "stdio.h"
+#include <stdint.h>
+#include <stdio.h>
 
 typedef struct sysvar{
 	int32_t rec_type;
@@ -23,12 +23,13 @@ typedef struct sysvar{
 	//Optionals
 	int32_t label_length;
 	char *label;
-	float *missing_values;
+	double *missing_values;
+	//Construction flag
 	bool constructed;
 }sysvar_t;
 
 //sysvar_new() is only intended for internal use, to be called by fnew
-sysvar_t *sysvar_new(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t,char*,int32_t,char*,float*);
+sysvar_t *sysvar_new(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t,char*,int32_t,char*,double*);
 sysvar_t *sysvar_fnew(FILE*);
 bool sysvar_destroy(sysvar_t*);
 
