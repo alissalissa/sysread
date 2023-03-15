@@ -2,17 +2,17 @@
 default: compile
 
 #compile
-compile: sfutil.o sysheader.o sysvar.o
+compile: sfutil.o sysheader.o sysvar.o sysvl.o
 	$(info Linking shared library...)
-	cc -o sysfile.so -g sysvar.o sfutil.o sysheader.o -shared -fPIC
+	cc -o sysfile.so -g sysvl.o sysvar.o sfutil.o sysheader.o -shared -fPIC
 
 sfutil.o:
 	$(info Compiling sfutil.c...)
 	cc -g -c -o sfutil.o -I../include/ ../src/sfutil.c
 
-#sysfile.o:
-#	echo "Compiling sysfile.c..."
-#	cc -g -c -o sysfile.o -I../include/ ../src/sysfile.c
+sysvl.o:
+	$(info Compiling sysvl.c...)
+	cc -g -c -o sysvl.o -I../include/ ../src/sysvl.c
 
 sysheader.o:
 	$(info Compiling sysheader.c...)
