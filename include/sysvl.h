@@ -14,6 +14,7 @@ typedef struct sysvarlabel {
 	char *value;
 	char label_length;
 	char *label;
+	bool constructed;
 }sysvarlabel_t;
 
 //This function is for internal use by the fnew function only
