@@ -63,3 +63,15 @@ bool sysvarlabel_destroy(sysvarlabel_t *haystack){
 	free(haystack);
 	return true;
 }
+
+//syslabels_t functions
+syslabels_t *syslabels_new(char record_type,int32_t label_count,sysvarlabel_t* labels){
+	if(!labels) return NULL;
+	else if(record_type!=2) return NULL;
+	syslabels_t *ret=(syslabels_t*)malloc(sizeof(syslabels_t));
+	ret->record_type=record_type;
+	ret->label_count=label_count;
+	ret->labels=(sysvarlabel_t*)calloc(ret->label_count,sizeof(sysvarlabel_t));
+	memcpy(ret->labels,labels,ret->label_count);
+	return ret;
+}
