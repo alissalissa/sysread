@@ -26,11 +26,12 @@ bool sysvarlabel_destroy(sysvarlabel_t*);
 typedef struct syslabels{
 	char record_type;
 	int32_t label_count;
-	sysvarlabel_t *labels;
+	sysvarlabel_t **labels;
+	bool constructed;
 }syslabels_t;
 
 //This function is for internal use by the fnew function only
-syslabels_t *syslabels_new(char,int32_t,sysvarlabel_t*);
+syslabels_t *syslabels_new(char,int32_t,sysvarlabel_t**);
 syslabels_t *syslabels_fnew(FILE*);
 bool syslabels_destroy(syslabels_t*);
 
