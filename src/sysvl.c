@@ -106,13 +106,26 @@ syslabels_t *syslabels_fnew(FILE *handle){
 			free(labels);
 			return NULL;
 		}
-	}
+	}//We don't have to handle File I/O error checking here
+	//	Because it's already being handled by sysvarlabel_fnew
 
 	syslabels_t *ret=syslabels_new(record_type,label_count,labels);
 	for(int i=0;i<label_count;i++)
-		free(labels[i]);
+		sysvarlabel_destroy(labels[i]);
 	free(labels);
 
 	return ret;
+
+}
+
+bool syslabels_destroy(syslabels_t *haystack){
+	if(!haystack) return false;
+	if(!haystack->constructed) return false;
+
+	for(int i=0;i<haystack->label_count;i++)
+		sysvarlabel_destroy(haystack->labels[i]);
+	free(haystack->labels);
+
+	return true;
 
 }
