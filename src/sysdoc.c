@@ -51,3 +51,13 @@ sysdoc_t *sysdoc_fnew(FILE *handle){
 	free(lines);
 	return ret;
 }
+
+bool sysdoc_destroy(sysdoc_t *haystack){
+	if(!haystack) return false;
+	else if(!haystack->constructed) return false;
+	for(int i=0;i<haystack->n_lines;i++)
+		free(haystack->lines[i]);
+	free(haystack->lines);
+	free(haystack);
+	return true;
+}
