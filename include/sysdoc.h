@@ -1,3 +1,5 @@
+//type to hold the document record(s)
+
 #ifndef SYSDOC_H
 #define SYSDOC_H
 

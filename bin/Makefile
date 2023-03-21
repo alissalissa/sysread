@@ -2,9 +2,9 @@
 default: compile
 
 #compile
-compile: sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o
+compile: sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o sysinfo.o
 	$(info Linking shared library...)
-	cc -o sysfile.so -g sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o -shared -fPIC
+	cc -o sysfile.so -g sysinfo.o sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o -shared -fPIC
 
 sfutil.o:
 	$(info Compiling sfutil.c...)
@@ -25,3 +25,7 @@ sysvar.o:
 sysdoc.o:
 	$(info Compiling sysdoc.c...)
 	cc -g -c -o sysdoc.o -I../include/ ../src/sysdoc.c
+
+sysinfo.o:
+	$(info Compiling sysinfo.c...)
+	cc -g -c -o sysinfo.o -I../include/ ../src/sysinfo.c

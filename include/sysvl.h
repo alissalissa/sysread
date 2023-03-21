@@ -1,3 +1,4 @@
+//Defines structs focused on handling variable labels
 #ifndef SYSVL_H
 #define SYSVL_H
 

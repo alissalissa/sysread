@@ -1,3 +1,4 @@
+//utility functions used by other parts of the sysread library
 #ifndef SF_UTIL_H
 #define SF_UTIL_H
 
