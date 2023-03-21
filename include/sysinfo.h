@@ -28,7 +28,7 @@ typedef struct sysinfo {
 }sysinfo_t;
 
 //Factory functions.  New is for internal use by fnew only
-sysinfo_t *sysinfo_new(int32_t,int32_t,int32_t,int32_t,...);
+sysinfo_t *sysinfo_new(int32_t,int32_t,int32_t,int32_t,int32_t*);
 sysinfo_t *sysinfo_fnew(FILE*);
 bool sysinfo_destroy(sysinfo_t*);
 
