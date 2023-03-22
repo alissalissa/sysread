@@ -59,3 +59,10 @@ sysinfo_t *sysinfo_fnew(FILE *handle){
 	free(data);
 	return ret;
 }
+
+bool sysinfo_destroy(sysinfo_t *haystack){
+	if(!haystack) return false;
+	else if(!haystack->constructed) return false;
+	free(haystack);
+	return true;
+}
