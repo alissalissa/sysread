@@ -8,24 +8,24 @@ compile: sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o sysinfo.o
 
 sfutil.o:
 	$(info Compiling sfutil.c...)
-	cc -g -c -o sfutil.o -I../include/ ../src/sfutil.c
+	cc -g -c -o sfutil.o -I../include/ ../src/sfutil.c -fPIC
 
 sysvl.o:
 	$(info Compiling sysvl.c...)
-	cc -g -c -o sysvl.o -I../include/ ../src/sysvl.c
+	cc -g -c -o sysvl.o -I../include/ ../src/sysvl.c -fPIC
 
 sysheader.o:
 	$(info Compiling sysheader.c...)
-	cc -g -c -o sysheader.o -I../include/ ../src/sysheader.c
+	cc -g -c -o sysheader.o -I../include/ ../src/sysheader.c -fPIC
 
 sysvar.o:
 	$(info Compiling sysvar.c...)
-	cc -g -c -o sysvar.o -I../include/ ../src/sysvar.c
+	cc -g -c -o sysvar.o -I../include/ ../src/sysvar.c -fPIC
 
 sysdoc.o:
 	$(info Compiling sysdoc.c...)
-	cc -g -c -o sysdoc.o -I../include/ ../src/sysdoc.c
+	cc -g -c -o sysdoc.o -I../include/ ../src/sysdoc.c -fPIC
 
 sysinfo.o:
 	$(info Compiling sysinfo.c...)
-	cc -g -c -o sysinfo.o -I../include/ ../src/sysinfo.c
+	cc -g -c -o sysinfo.o -I../include/ ../src/sysinfo.c -fPIC
