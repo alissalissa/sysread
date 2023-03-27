@@ -1,6 +1,6 @@
 //struct to contain information about the file itself
-#ifndef SYSINFO_H
-#define SYSINFO_H
+#ifndef SYSIINFO_H
+#define SYSIINFO_H
 
 #include <stdarg.h>
 #include <stdbool.h>
@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct sysinfo {
+typedef struct sysintinfo {
 	//Header data
 	int32_t rec_type;
 	int32_t subtype;
@@ -25,11 +25,11 @@ typedef struct sysinfo {
 	int32_t character_code;
 	//Construction flag
 	bool constructed;
-}sysinfo_t;
+}sysintinfo_t;
 
 //Factory functions.  New is for internal use by fnew only
-sysinfo_t *sysinfo_new(int32_t,int32_t,int32_t,int32_t,int32_t*);
-sysinfo_t *sysinfo_fnew(FILE*);
-bool sysinfo_destroy(sysinfo_t*);
+sysintinfo_t *sysinfo_new(int32_t,int32_t,int32_t,int32_t,int32_t*);
+sysintinfo_t *sysinfo_fnew(FILE*);
+bool sysinfo_destroy(sysintinfo_t*);
 
 #endif
