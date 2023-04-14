@@ -8,26 +8,45 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct sysmrset {
+/*typedef struct sysmrset {
 	int32_t record_type;
 	int32_t subtype;
-	//Number of bytes per element within a set
+	//Number of bytes per element within a set -- always 1
 	int32_t size;
-	/*the specification says this is the number of bytes in the total record.
-		For the purposes of this struct,
-		count refers to the number of lines, rather than total bytes.*/
+	//Number of bytes in the data portion
 	int32_t count;
-	//number of bytes in each line
-	int32_t *length;
 	//data
-	char **mrsets;
+	struct sysmrset *response_sets;
 	//Construction flag
 	bool constructed;
 }sysmrset_t;
 
 //sysmrset_t factories, new is only for use by fnew
-sysmrset_t *sysmrset_new(int32_t,int32_t,int32_t,int32_t,int32_t*,char**);
+sysmrset_t *sysmrset_new(int32_t,int32_t,int32_t,int32_t,sysmrset_t*);
 sysmrset_t *sysmrset_fnew(FILE*);
 bool sysmrset_destroy(sysmrset_t*);
+
+//an individual record
+typedef struct sysmr{
+
+}sysmr_t;*/
+
+//Multiple category Set
+typedef struct mcset{
+	int32_t set_name_length;
+	char *set_name;
+	int32_t record_type;
+	int32_t label_length;
+	char *label;
+	int32_t count;
+	int32_t *var_lengths;
+	char **variables;
+	bool constructed;
+}mcset_t;
+
+//mcset factories, new is only for use by snew
+mcset_t *mcset_new(int32_t,char*,int32_t,int32_t,char*,int32_t,int32_t*,char**);
+mcset_t *mcset_snew(int32_t,char*); //snew reads from a byte stream rather than a file handle
+bool mcset_destroy(mcset_t*);
 
 #endif
