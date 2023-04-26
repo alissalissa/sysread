@@ -72,10 +72,11 @@ mcset_t *mcset_new(int32_t set_name_length,char *set_name,int32_t record_type,in
 
 }
 
-mcset_t *mcset_snew(int32_t len,char *stream){
+mcset_t *mcset_snew(size_t len,char *stream){
 	if(len<=2) return NULL;
 	if(stream[0]!='$') return NULL;
 
+	//Read the name of the set from the stream
 	int32_t set_name_length=0;
 	for(set_name_length=1;set_name_length<len && stream[set_name_length]!='=';set_name_length++);
 	set_name_length--;
@@ -85,24 +86,31 @@ mcset_t *mcset_snew(int32_t len,char *stream){
 	char *set_name=calloc(set_name_length,sizeof(char));
 	for(int i=1;i<=set_name_length;i++) set_name[i]=stream[i];
 
+	//Verify formatting
 	int seek_index=set_name_length+2;
 	if(seek_index>=len){
+		printf("seek_index>=len at 90\n");
 		free(set_name);
 		return NULL;
 	}
-	if(stream[seek_index]!='c'){
+	if(stream[seek_index]!='C'){
+		printf("stream[seek_index]!=\'C\' at 95\n");
 		free(set_name);
 		return NULL;
 	}
 	++seek_index;
 	if(seek_index>=len){
+		printf("error at 100\n");
 		free(set_name);
 		return NULL;
 	}
 	if(stream[seek_index]!=' '){
+		printf("error at 105\n");
 		free(set_name);
 		return NULL;
 	}
+
+	//Verify and read the label
 	seek_index++;
 	int buffer_length=0;
 	char *label_length_char=(char*)calloc((size_t)buffer_length,sizeof(char));
@@ -114,30 +122,57 @@ mcset_t *mcset_snew(int32_t len,char *stream){
 	}
 	label_length_char=(char*)realloc(label_length_char,buffer_length+1);
 	label_length_char[buffer_length]='\0';
-	int32_t label_lenth=(int32_t)atoi(label_length_char);
+	int32_t label_length=(int32_t)atoi(label_length_char);
 	free(label_length_char);
-
 	if(seek_index>=len || stream[seek_index]!=' '){
+		printf("error at 125\n");
 		free(set_name);
 		free(label_length_char);
 		return NULL;
 	}
-
-	char *label=calloc(label_lenth,sizeof(char));
-	if((seek_index+label_lenth)>=len){
+	printf("label length = %d\n",label_length);
+	char *label=calloc(label_length,sizeof(char));
+	if((seek_index+label_length)>=len){
+		printf("error at 133\n");
 		free(set_name);
 		free(label);
 		return NULL;
 	}
-
-	for(int i=0;i<label_lenth;i++)
+	printf("label=");
+	for(int i=1;i<=label_length;i++){
 		label[i]=stream[seek_index+i];
+		printf("%c",label[i]);
+	}
+	printf("\n");
 	
-	seek_index+=label_lenth;
-	if(seek_index>=len){
+	//Verify formatting
+	seek_index+=label_length;
+	++seek_index;
+	if(seek_index>=len || stream[seek_index]!=' '){
+		printf("error at 144\n");
 		free(set_name);
 		free(label);
 		return NULL;
 	}
+
+	//Seek until the end of the stream to get the length of variable name section
+	int end_pos=0;
+	for(end_pos=seek_index;end_pos<len && stream[end_pos]!=0x0A;end_pos++);
+	printf("end_pos=%d\n",end_pos);
+	if(stream[end_pos]!=0x0A){
+		printf("Error in the seeking at 161\n");
+		free(label);
+		free(set_name);
+		return NULL;
+	}
+	//memory allocation happens within the subset function
+	char *var_label_string=subset(stream,seek_index+1,(end_pos-seek_index)-1);
+	//test code
+	printf("var label string = \n");
+	for(int i=0;i<((end_pos-seek_index)-1);i++)
+		printf("%c",var_label_string[i]);
+	printf("\n");
+
+	return (mcset_t*)0x01;
 
 }

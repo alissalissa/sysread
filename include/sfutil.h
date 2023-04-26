@@ -14,4 +14,14 @@ void mass_free(int,...);
 bool verify_date_format(char*);
 bool verify_time_format(char*);
 
+//manipulates a non-null-terminated byte string
+char *subset(char*,int,int);
+//first element of return value is guaranteed to be present
+//  it is the number of elements.
+//  Remaining elements are the lengths of the names,
+//      Which results in a size of number of labels +1
+int *split(char**,char*,int,char);
+//Finds the first occurrence
+int find_first(char*,int,char);
+
 #endif

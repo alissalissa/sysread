@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "sfutil.h"
+
 /*typedef struct sysmrset {
 	int32_t record_type;
 	int32_t subtype;
@@ -46,7 +48,7 @@ typedef struct mcset{
 
 //mcset factories, new is only for use by snew
 mcset_t *mcset_new(int32_t,char*,int32_t,int32_t,char*,int32_t,int32_t*,char**);
-mcset_t *mcset_snew(int32_t,char*); //snew reads from a byte stream rather than a file handle
+mcset_t *mcset_snew(size_t,char*); //snew reads from a byte stream rather than a file handle
 bool mcset_destroy(mcset_t*);
 
 #endif
