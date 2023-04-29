@@ -2,9 +2,9 @@
 default: compile
 
 #compile
-compile: mrset.o sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o sysiinfo.o sysfinfo.o
+compile: bstream.o mrset.o sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o sysiinfo.o sysfinfo.o
 	$(info Linking shared library...)
-	gcc -o libsysfile.so -g mrset.o sysiinfo.o sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o sysfinfo.o -shared -fPIC
+	gcc -o libsysfile.so -g bstream.o mrset.o sysiinfo.o sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o sysfinfo.o -shared -fPIC
 
 sfutil.o:
 	$(info Compiling sfutil.c...)
@@ -37,6 +37,10 @@ sysfinfo.o:
 mrset.o:
 	$(info Compiling mrset.c...)
 	gcc -g -c -o mrset.o -I../include/ ../src/mrset.c -fPIC
+
+bstream.o:
+	$(info Compiling bstream.c...)
+	gcc -g -c -o bstream.o -I../include ../src/bstream.c -fPIC
 
 clean:
 	rm *.o *.so
