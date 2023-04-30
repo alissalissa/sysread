@@ -76,7 +76,7 @@ bstream_t bstream_subset(bstream_t haystack,int start,int length){
     bstream_t ret;
     ret.length=length;
     ret.stream=(char*)calloc(length,sizeof(char));
-    for(int i=start;i<((length>=0)?(start+length):(haystack.length-start));i++)
+    for(int i=start;i<((length>=0 && length<=(haystack.length-start))?(start+length):(haystack.length-start));i++)
         ret.stream[i-start]=haystack.stream[i];
     return ret;
 }
