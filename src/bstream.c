@@ -94,9 +94,14 @@ bstream_t **bstream_split(bstream_t haystack,char delimiter){
 
 bstream_t bstream_subset(bstream_t haystack,int start,int length){
     bstream_t ret;
+	if(length==0){
+		ret.length=0;
+		ret.stream=NULL;
+		return ret;
+	}
     ret.length=(length>=0?length:(haystack.length-start));
     ret.stream=(char*)calloc((length>=0)?length:(haystack.length-start),sizeof(char));
-    for(int i=start;i<((length>=0 && length<=(haystack.length-start))?(start+length):(haystack.length-start));i++)
+    for(int i=start;i<((length>=0 && length<=(haystack.length-start))?(start+length):(haystack.length));i++)
         ret.stream[i-start]=haystack.stream[i];
     return ret;
 }
