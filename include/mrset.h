@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "bstream.h"
 #include "sfutil.h"
 
 /*typedef struct sysmrset {
@@ -35,20 +36,17 @@ typedef struct sysmr{
 
 //Multiple category Set
 typedef struct mcset{
-	int32_t set_name_length;
-	char *set_name;
+	bstream_t *set_name;
 	int32_t record_type;
-	int32_t label_length;
-	char *label;
+	bstream_t *label;
 	int32_t count;
-	int32_t *var_lengths;
-	char **variables;
+	bstream_t **variables;
 	bool constructed;
 }mcset_t;
 
 //mcset factories, new is only for use by snew
-mcset_t *mcset_new(int32_t,char*,int32_t,int32_t,char*,int32_t,int32_t*,char**);
-mcset_t *mcset_snew(size_t,char*); //snew reads from a byte stream rather than a file handle
+mcset_t *mcset_new(bstream_t*,int32_t,bstream_t*,int32_t,bstream_t**);
+mcset_t *mcset_snew(bstream_t*); //snew reads from a byte stream rather than a file handle
 bool mcset_destroy(mcset_t*);
 
 #endif
