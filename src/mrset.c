@@ -1,4 +1,4 @@
-#include "../include/mrset.h"
+#include "mrset.h"
 
 /*sysmrset_t *sysmrset_new(int32_t record_type,int32_t subtype,int32_t size,int32_t count,sysmr_t *response_sets){
 	sysmrset_t *ret=(sysmrset_t*)malloc(sizeof(sysmrset_t));
@@ -182,4 +182,17 @@ mcset_t *mcset_snew(bstream_t *stream){
 
 	return mcset_new(&set_name,7,label,var_label_count,labels);
 
+}
+
+bool mcset_destroy(mcset_t *haystack){
+	if(!haystack->constructed) return false;
+	if(!bstream_destroy(haystack->set_name)) return false;
+	if(!bstream_destroy(haystack->label)) return false;
+	if(haystack->count>0)
+		for(int i=0;i<haystack->count;i++)
+			if(!bstream_destroy(haystack->variables[i])) return false;
+	free(haystack->variables);
+	haystack->constructed=false;
+	free(haystack);
+	return true;
 }

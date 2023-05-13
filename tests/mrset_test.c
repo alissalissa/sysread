@@ -10,6 +10,7 @@ bool test_mcset(void){
 	test_stream->stream[28]=(char)0x0a;
 	mcset_t *test_set=mcset_snew(test_stream);
 	if(!test_set) return false;
+	mcset_destroy(test_set);
 	return true;
 }
 
