@@ -11,6 +11,9 @@
 #include "bstream.h"
 #include "sfutil.h"
 
+const char MDSET_VARLABELS='D';
+const char MDSET_COUNTEDVALUES='E';
+
 /*typedef struct sysmrset {
 	int32_t record_type;
 	int32_t subtype;
@@ -48,5 +51,24 @@ typedef struct mcset{
 mcset_t *mcset_new(bstream_t*,int32_t,bstream_t*,int32_t,bstream_t**);
 mcset_t *mcset_snew(bstream_t*); //snew reads from a byte stream rather than a file handle
 bool mcset_destroy(mcset_t*);
+
+/*****************************************************************/
+
+//Multiple Dichotomy Sets
+typedef struct mdset {
+	bstream_t *set_name;
+	int32_t record_type;
+	char flag;//Either MDSET_VARLABELS or MDSET_COUNTEDVALUES
+	bstream_t *label;//label for the set
+	int32_t count;//The number of variables
+	bstream_t **variables;//the names of the variables
+	bstream_t *counted_value;
+	bool constructed;
+}mdset_t;
+
+//mdset factories, new is only for use by snew
+mdset_t *mdset_new(bstream_t*,int32_t,char,bstream_t*,int32_t,bstream_t**,bstream_t*);
+mdset_t *mdset_snew(bstream_t*);
+bool mdset_destroy(mdset_t*);
 
 #endif

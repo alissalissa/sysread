@@ -83,7 +83,7 @@ bstream_t **bstream_split(bstream_t haystack,char delimiter){
     bstream_t *modable=bstream_copy(&haystack);
 	for(int i=0;i<count;i++){
 		bstream_t subset_buffer=bstream_subset(*modable,0,bstream_find(*modable,delimiter));
-        dest[i]=bstream_copy(&subset_buffer); //refactored up to here
+        dest[i]=bstream_copy(&subset_buffer);
         bstream_t modable_buffer=bstream_subset(*modable,bstream_find(*modable,delimiter)+1,-1);
 		bstream_destroy(modable);
         modable=bstream_copy(&modable_buffer);

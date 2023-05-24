@@ -196,3 +196,50 @@ bool mcset_destroy(mcset_t *haystack){
 	free(haystack);
 	return true;
 }
+
+/***********************************************************/
+//Multiple Dichotomy Sets
+mdset_t *mdset_new(bstream_t* set_name,int32_t record_type,char flag,bstream_t *label,int32_t count,bstream_t **variables,bstream_t *counted_value){
+	if(!set_name || !label || !variables || !counted_value) return NULL;
+	mdset_t *ret=(mdset_t*)malloc(sizeof(mdset_t));
+	if(!ret) return NULL;
+
+	ret->set_name=bstream_copy(set_name);
+	if(!ret->set_name){
+		free(ret);
+		return NULL;
+	}
+	ret->record_type=record_type;
+	ret->flag=flag;
+	ret->label=bstream_copy(label);
+	if(!ret->label){
+		free(ret->set_name);
+		free(ret);
+		return NULL;
+	}
+	ret->count=count;
+	ret->variables=(bstream_t**)calloc(count,sizeof(bstream_t*));
+	if(!ret->variables){
+		free(ret->label);
+		free(ret->set_name);
+		free(ret);
+		return NULL;
+	}
+	for(int i=0;i<count;i++){
+		//Memory is allocated within bstream_copy
+		ret->variables[i]=bstream_copy(variables[i]);
+		if(!ret->variables[i]){
+			for(int j=0;j<i;j++)
+				bstream_destroy(ret->variables[i]);
+			free(ret->set_name);
+			free(ret->label);
+			free(ret->variables);
+			free(ret);
+			return NULL;
+
+		}
+	}
+	ret->counted_value=counted_value;
+	ret->constructed=true;
+	return ret;
+}
