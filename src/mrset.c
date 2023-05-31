@@ -236,10 +236,62 @@ mdset_t *mdset_new(bstream_t* set_name,int32_t record_type,char flag,bstream_t *
 			free(ret->variables);
 			free(ret);
 			return NULL;
-
 		}
 	}
 	ret->counted_value=counted_value;
 	ret->constructed=true;
 	return ret;
+}
+
+mdset_t *mdset_snew(bstream_t *haystack){
+	assert(haystack);
+	if(haystack->stream[0]!='$' || haystack->length<2)
+		return NULL;
+	int seek=0;
+	bstream_t set_name=bstream_subset(*haystack,1,bstream_find(*haystack,'=')-1);
+	printf("Set name = ");
+	fwrite(set_name.stream,sizeof(char),set_name.length,stdout);
+	printf("\n");
+	seek=1+set_name.length;
+	if(haystack->stream[seek]!='=')
+		return NULL;
+	seek++;
+	if(seek>=haystack->length)
+		return NULL;
+	char flag=haystack->stream[seek];
+	printf("flag = %c\n",flag);
+	if(flag==MCSET_FLAG){
+		printf("You have passed an MCSET bstream_t to an mdset_t factory...");
+		return NULL;
+	}
+	if(flag!=MDSET_VARLABELS && flag!=MDSET_COUNTEDVALUES)
+		return NULL;
+	seek++;
+	if(seek>haystack->length || haystack->stream[seek]!=' ')
+		return NULL;
+	seek++;
+	if(seek>haystack->length)
+		return NULL;
+	bstream_t haystack_buffer=bstream_subset(*haystack,seek,-1);
+	seek=0;
+	bstream_t counted_value=bstream_subset(haystack_buffer,0,bstream_find(haystack_buffer,' '));
+	printf("Counted value = ");
+	fwrite(counted_value.stream,sizeof(char),counted_value.length,stdout);
+	printf("\n");
+
+	return (mdset_t*)0x01;
+}
+
+bool mdset_destroy(mdset_t *haystack){
+	if(!haystack->constructed) return false;
+	if(!bstream_destroy(haystack->set_name)) return false;
+	if(!bstream_destroy(haystack->label)) return false;
+	if(!bstream_destroy(haystack->counted_value)) return false;
+	for(int i=0;i<haystack->count;i++)
+		if(!bstream_destroy(haystack->variables[i]))
+			return false;
+	free(haystack->variables);
+	haystack->constructed=false;
+	free(haystack);
+	return true;
 }

@@ -2,6 +2,7 @@
 #ifndef MRSET_H
 #define MRSET_H
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -13,6 +14,7 @@
 
 const char MDSET_VARLABELS='D';
 const char MDSET_COUNTEDVALUES='E';
+const char MCSET_FLAG='C';
 
 /*typedef struct sysmrset {
 	int32_t record_type;

@@ -8,4 +8,5 @@ compile:
 	$(MAKE) -C $(source_dir)
 
 clean:
-	rm ./bin/*.o ./bin/*.so
+	$(MAKE) -C $(source_dir) clean
+#	rm ./bin/*.o ./bin/*.so
