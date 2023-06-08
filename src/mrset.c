@@ -83,6 +83,11 @@ mcset_t *mcset_new(bstream_t *set_name,int32_t record_type,bstream_t *label,int3
 
 }
 
+/************************************************
+ * @TODO this factory function relies on an end 0x0a byte
+ * This needs to be refactored to be based on absolute stream length instead
+ * Because 0x0a is a delimeter that won't be present in the passed stream
+ * ***********************************************/
 mcset_t *mcset_snew(bstream_t *stream){
 	if(stream->length<=2) return NULL;
 	if(stream->stream[0]!='$') return NULL;
@@ -238,11 +243,12 @@ mdset_t *mdset_new(bstream_t* set_name,int32_t record_type,char flag,bstream_t *
 			return NULL;
 		}
 	}
-	ret->counted_value=counted_value;
+	ret->counted_value=bstream_copy(counted_value);
 	ret->constructed=true;
 	return ret;
 }
 
+//@TODO update to function independent of the passed flag
 mdset_t *mdset_snew(bstream_t *haystack){
 	assert(haystack);
 	if(haystack->stream[0]!='$' || haystack->length<2)
@@ -279,7 +285,49 @@ mdset_t *mdset_snew(bstream_t *haystack){
 	fwrite(counted_value.stream,sizeof(char),counted_value.length,stdout);
 	printf("\n");
 
-	return (mdset_t*)0x01;
+	haystack_buffer=bstream_subset(haystack_buffer,counted_value.length+1,-1);
+	//seek=0; This is an unnecessary line, since seek hasn't been modified since being set to zero a few lines ago
+	bstream_t label_len_stream;
+	label_len_stream.length=bstream_find(haystack_buffer,' ');
+	if(label_len_stream.length<0) return NULL;
+	label_len_stream.stream=NULL;
+	if(label_len_stream.length>0)
+		label_len_stream=bstream_subset(haystack_buffer,0,label_len_stream.length);
+	//This sets the stream to just past the space on the other side of the length
+	haystack_buffer=bstream_subset(haystack_buffer,label_len_stream.length+1,-1);
+
+	//label length as an integer
+	label_len_stream.length++;
+	label_len_stream.stream=(char*)realloc(label_len_stream.stream,label_len_stream.length);
+	label_len_stream.stream[label_len_stream.length-1]='\0';
+	int llen=atoi(label_len_stream.stream);
+	printf("label length=%d\n",llen);
+
+	//Get the label
+	bstream_t label;
+	label.length=0;
+	label.stream=NULL;
+	printf("label=");
+	if(llen>0){
+		label=bstream_subset(haystack_buffer,0,llen);
+		fwrite(label.stream,sizeof(char),label.length,stdout);
+	}
+	printf("\n");
+
+	//haystack_buffer now contains a space-delimited stream of variable names
+	int32_t count=bstream_count(haystack_buffer,' ')+1;
+	bstream_t **variables=bstream_split(haystack_buffer,' ');
+	if(!variables) return NULL;
+
+	mdset_t *ret=mdset_new(&set_name,7,flag,&label,count,variables,&counted_value);
+	for(int i=0;i<count;i++){
+		fwrite(variables[i]->stream,sizeof(char),variables[i]->length,stdout);
+		printf("\n");
+		bstream_destroy(variables[i]);
+	}
+	free(variables);
+
+	return ret;
 }
 
 bool mdset_destroy(mdset_t *haystack){
