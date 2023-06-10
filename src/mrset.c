@@ -1,47 +1,5 @@
 #include "mrset.h"
 
-/*sysmrset_t *sysmrset_new(int32_t record_type,int32_t subtype,int32_t size,int32_t count,sysmr_t *response_sets){
-	sysmrset_t *ret=(sysmrset_t*)malloc(sizeof(sysmrset_t));
-	ret->record_type=record_type;
-	ret->subtype=subtype;
-	ret->size=size;
-	ret->count=count;
-	
-	ret->constructed=true;
-	return ret;
-}
-
-sysmrset_t *sysmrset_fnew(FILE *handle){
-	if(!handle) return NULL;
-	
-	//const values
-	int32_t record_type=0;
-	int32_t subtype=0;
-	int32_t size=0;
-	
-	fread(&record_type,sizeof(int32_t),1,handle);
-	if(ferror(handle) || feof(handle) || record_type!=7){
-		printf("Corrupted multiple response set record...\n");
-		return NULL;
-	}
-
-	fread(&subtype,sizeof(int32_t),1,handle);
-	if(ferror(handle) || feof(handle) || (subtype!=7 && subtype!=19)){
-		printf("Corrupted multiple response set record...\n");
-		return NULL;
-	}
-
-	fread(&size,sizeof(int32_t),1,handle);
-	if(ferror(handle) || feof(handle) || size!=1){
-		printf("Corrupted multiple response set record...\n");
-		return NULL;
-	}
-
-	//dynamic values
-
-
-}*/
-
 //Multiple Category Sets
 mcset_t *mcset_new(bstream_t *set_name,int32_t record_type,bstream_t *label,int32_t count,bstream_t **variables){
 	
@@ -83,109 +41,63 @@ mcset_t *mcset_new(bstream_t *set_name,int32_t record_type,bstream_t *label,int3
 
 }
 
-/************************************************
- * @TODO this factory function relies on an end 0x0a byte
- * This needs to be refactored to be based on absolute stream length instead
- * Because 0x0a is a delimeter that won't be present in the passed stream
- * ***********************************************/
-mcset_t *mcset_snew(bstream_t *stream){
-	if(stream->length<=2) return NULL;
-	if(stream->stream[0]!='$') return NULL;
-
-	//Read the name of the set from the stream
-	int32_t set_name_length=0;
-	for(set_name_length=1;set_name_length<(int32_t)stream->length && stream->stream[set_name_length]!='=';set_name_length++);
-	set_name_length--;
-	//unit test code
-	printf("set_name_length=%d\n",set_name_length);
-	if(stream->stream[set_name_length+1]!='=') return NULL;
-	bstream_t set_name=bstream_subset(*stream,1,set_name_length);
-
-	//Verify formatting
-	int seek_index=set_name_length+2;
-	if(seek_index>=(int)stream->length){
-		printf("seek_index>=len at 91\n");
+mcset_t *mcset_snew(bstream_t *haystack){
+	assert(haystack);
+	if(haystack->stream[0]!='$'){
+		printf("Invalid stream in mcset construction...\n");
 		return NULL;
 	}
-	if(stream->stream[seek_index]!='C'){
-		printf("stream->stream[seek_index]!=\'C\' at 95\n");
-		return NULL;
-	}
-	++seek_index;
-	if(seek_index>=(int)stream->length){
-		printf("error at 100\n");
-		return NULL;
-	}
-	if(stream->stream[seek_index]!=' '){
-		printf("error at 104\n");
+	
+	//Get the name of the set
+	bstream_t set_name=bstream_subset(*haystack,1,bstream_find(*haystack,'=')-1);
+	printf("set name=");
+	fwrite(set_name.stream,sizeof(char),set_name.length,stdout);
+	printf("\n");
+	//Verify
+	if(haystack->stream[set_name.length+1]!='=' || haystack->stream[set_name.length+2]!=MCSET_FLAG){
+		printf("Corrupted mcset stream...\n");
 		return NULL;
 	}
 
-	//Verify and read the label
-	seek_index++;
-	bstream_t *label_length_stream=bstream_new();
-	while(seek_index<(int)stream->length && stream->stream[seek_index]!=' '){
-		bstream_append(label_length_stream,stream->stream[seek_index]);
-		++seek_index;
-	}
-	bstream_append(label_length_stream,'\0');
-	int32_t label_length=(int32_t)atoi(label_length_stream->stream);
-	bstream_destroy(label_length_stream);
-	if(seek_index>=(int)stream->length || stream->stream[seek_index]!=' '){
-		printf("error at 130\n");
-		return NULL;
-	}
+	//Trim the haystack
+	bstream_t haystack_modable=bstream_subset(*haystack,set_name.length+4,-1);
+	fwrite(haystack_modable.stream,sizeof(char),haystack_modable.length,stdout);
+	printf("\n");
+	//This trim gets us onto the other side of the space, right before the label length
+
+	//Get the length of the label
+	bstream_t label_length_stream=bstream_subset(haystack_modable,0,bstream_find(haystack_modable,' '));
+	char *label_length_string=(char*)calloc(label_length_stream.length+1,sizeof(char));
+	memcpy(label_length_string,label_length_stream.stream,label_length_stream.length);
+	label_length_string[label_length_stream.length]='\0';
+	int label_length=atoi(label_length_string);
 	printf("label length = %d\n",label_length);
-	bstream_t *label=bstream_new();
-	if((seek_index+label_length)>=(int)stream->length){
-		printf("error at 136\n");
-		free(label);
-		return NULL;
-	}
-	printf("label=");
-	for(int i=1;i<=label_length;i++){
-		bstream_append(label,stream->stream[seek_index+i]);
-		printf("%c",label->stream[i]);
-	}
-	printf("\n");
-	
-	//Verify formatting
-	seek_index+=label_length;
-	++seek_index;
-	if(seek_index>=(int)stream->length || stream->stream[seek_index]!=' '){
-		printf("error at 144\n");
-		free(label);
-		return NULL;
-	}
 
-	//Seek until the end of the stream to get the length of variable name section
-	int end_pos=0;
-	for(end_pos=seek_index;end_pos<(int)stream->length && stream->stream[end_pos]!=0x0A;end_pos++);
-	printf("end_pos=%d\n",end_pos);
-	if(stream->stream[end_pos]!=0x0A){
-		printf("Error in the seeking at 161\n");
-		free(label);
-		return NULL;
-	}
-	//memory allocation happens within the subset function
-	bstream_t var_label_stream=bstream_subset(*stream,seek_index+1,(end_pos-seek_index)-1);
-	//test code
-	printf("var label string = \n");
-	for(int i=0;i<((end_pos-seek_index)-1);i++)
-		printf("%c",var_label_stream.stream[i]);
+	//Adjust the stream
+	haystack_modable=bstream_subset(haystack_modable,label_length_stream.length+1,-1);
+	fwrite(haystack_modable.stream,sizeof(char),haystack_modable.length,stdout);
 	printf("\n");
-	bstream_t **labels=bstream_split(var_label_stream,' ');
-	int32_t var_label_count=bstream_count(var_label_stream,' ')+1;
-	
-	//test code
-	printf("Labels:\n");
-	for(int i=0;i<var_label_count;i++){
-		for(int j=0;j<(int)(labels[i]->length);j++)
-			printf("%c",labels[i]->stream[j]);
+
+	//Get the label
+	bstream_t label=bstream_subset(haystack_modable,0,label_length);
+	printf("label = ");
+	fwrite(label.stream,sizeof(char),label.length,stdout);
+	printf("\n");
+
+	//Adjust the stream
+	haystack_modable=bstream_subset(haystack_modable,label.length+1,-1);
+	//Split up the variable names
+	int32_t count=bstream_count(haystack_modable,' ')+1;
+	bstream_t **variables=bstream_split(haystack_modable,' ');
+
+	//Just for testing purposes,
+	//	print out the variables
+	for(int i=0;i<count;i++){
+		fwrite(variables[i]->stream,sizeof(char),variables[i]->length,stdout);
 		printf("\n");
 	}
 
-	return mcset_new(&set_name,7,label,var_label_count,labels);
+	return mcset_new(&set_name,7,&label,count,variables);
 
 }
 
@@ -249,6 +161,7 @@ mdset_t *mdset_new(bstream_t* set_name,int32_t record_type,char flag,bstream_t *
 }
 
 //@TODO update to function independent of the passed flag
+//@TODO update to include validity checking around string length
 mdset_t *mdset_snew(bstream_t *haystack){
 	assert(haystack);
 	if(haystack->stream[0]!='$' || haystack->length<2)
