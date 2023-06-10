@@ -97,7 +97,13 @@ mcset_t *mcset_snew(bstream_t *haystack){
 		printf("\n");
 	}
 
-	return mcset_new(&set_name,7,&label,count,variables);
+	//@TODO fix the memory leak in variables
+	mcset_t *ret=mcset_new(&set_name,7,&label,count,variables);
+	for(int i=0;i<count;i++)
+		bstream_destroy(variables[i]);
+	free(variables);
+
+	return ret;
 
 }
 
