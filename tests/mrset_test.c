@@ -14,7 +14,7 @@ bool test_mcset(void){
 
 bool test_mdset(void){
 	char test_string[]="$b=D 55 0  g e f d";
-	bstream_t *test_stream=bstream_cnew(test_string,19);
+	bstream_t *test_stream=bstream_cnew(test_string,20);
 	mdset_t *test_set=mdset_snew(test_stream);
 	if(!test_set) return false;
 	mdset_destroy(test_set);

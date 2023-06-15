@@ -97,7 +97,6 @@ mcset_t *mcset_snew(bstream_t *haystack){
 		printf("\n");
 	}
 
-	//@TODO fix the memory leak in variables
 	mcset_t *ret=mcset_new(&set_name,7,&label,count,variables);
 	for(int i=0;i<count;i++)
 		bstream_destroy(variables[i]);
@@ -166,24 +165,21 @@ mdset_t *mdset_new(bstream_t* set_name,int32_t record_type,char flag,bstream_t *
 	return ret;
 }
 
-//@TODO update to function independent of the passed flag
-//@TODO update to include validity checking around string length
+//TODO update to function independent of the passed flag
+//TODO update to include validity checking around string length
 mdset_t *mdset_snew(bstream_t *haystack){
 	assert(haystack);
 	if(haystack->stream[0]!='$' || haystack->length<2)
 		return NULL;
-	int seek=0;
+	//int seek=0;
 	bstream_t set_name=bstream_subset(*haystack,1,bstream_find(*haystack,'=')-1);
 	printf("Set name = ");
 	fwrite(set_name.stream,sizeof(char),set_name.length,stdout);
 	printf("\n");
-	seek=1+set_name.length;
-	if(haystack->stream[seek]!='=')
-		return NULL;
-	seek++;
-	if(seek>=haystack->length)
-		return NULL;
-	char flag=haystack->stream[seek];
+	bstream_t haystack_buffer=bstream_subset(*haystack,2+set_name.length,-1);
+
+	bstream_t flag_stream=bstream_subset(haystack_buffer,0,bstream_find(haystack_buffer,' '));
+	char flag=flag_stream.stream[0];
 	printf("flag = %c\n",flag);
 	if(flag==MCSET_FLAG){
 		printf("You have passed an MCSET bstream_t to an mdset_t factory...");
@@ -191,14 +187,9 @@ mdset_t *mdset_snew(bstream_t *haystack){
 	}
 	if(flag!=MDSET_VARLABELS && flag!=MDSET_COUNTEDVALUES)
 		return NULL;
-	seek++;
-	if(seek>haystack->length || haystack->stream[seek]!=' ')
-		return NULL;
-	seek++;
-	if(seek>haystack->length)
-		return NULL;
-	bstream_t haystack_buffer=bstream_subset(*haystack,seek,-1);
-	seek=0;
+	
+	haystack_buffer=bstream_subset(haystack_buffer,flag_stream.length+1,-1);
+
 	bstream_t counted_value=bstream_subset(haystack_buffer,0,bstream_find(haystack_buffer,' '));
 	printf("Counted value = ");
 	fwrite(counted_value.stream,sizeof(char),counted_value.length,stdout);
@@ -226,12 +217,15 @@ mdset_t *mdset_snew(bstream_t *haystack){
 	bstream_t label;
 	label.length=0;
 	label.stream=NULL;
+	//FIXME why is there an erroneous '\n' being printed somewhere vaguely near here?
 	printf("label=");
 	if(llen>0){
 		label=bstream_subset(haystack_buffer,0,llen);
 		fwrite(label.stream,sizeof(char),label.length,stdout);
 	}
 	printf("\n");
+
+	haystack_buffer=bstream_subset(haystack_buffer,llen+1,-1);
 
 	//haystack_buffer now contains a space-delimited stream of variable names
 	int32_t count=bstream_count(haystack_buffer,' ')+1;
@@ -244,6 +238,7 @@ mdset_t *mdset_snew(bstream_t *haystack){
 		printf("\n");
 		bstream_destroy(variables[i]);
 	}
+//TODO modify to store coun
 	free(variables);
 
 	return ret;
