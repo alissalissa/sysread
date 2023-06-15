@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "mrset.h"
+#include "bstream.h"
 
 bool test_mcset(void){
 	char test_string[]="$abcde=C 10 my mcgroup a b c";

@@ -217,7 +217,6 @@ mdset_t *mdset_snew(bstream_t *haystack){
 	bstream_t label;
 	label.length=0;
 	label.stream=NULL;
-	//FIXME why is there an erroneous '\n' being printed somewhere vaguely near here?
 	printf("label=");
 	if(llen>0){
 		label=bstream_subset(haystack_buffer,0,llen);
@@ -238,7 +237,6 @@ mdset_t *mdset_snew(bstream_t *haystack){
 		printf("\n");
 		bstream_destroy(variables[i]);
 	}
-//TODO modify to store coun
 	free(variables);
 
 	return ret;
