@@ -16,7 +16,7 @@ bool test_mcset(void){
 
 bool test_mdset(void){
 	char test_string1[]="$b=D 55 0  g e f d";
-	bstream_t *test_stream1=bstream_cnew(test_string1,20);
+	bstream_t *test_stream1=bstream_cnew(test_string1,18);
 	mdset_t *test_set1=mdset_snew(test_stream1);
 	if(!test_set1) return false;
 	mdset_destroy(test_set1);
@@ -28,6 +28,13 @@ bool test_mdset(void){
 	if(!test_set2) return false;
 	mdset_destroy(test_set2);
 	bstream_destroy(test_stream2);
+
+	char test_string3[]="$e=E 11 6 choice 0  n o p";
+	bstream_t *test_stream3=bstream_cnew(test_string3,25);
+	mdset_t *test_set3=mdset_snew(test_stream3);
+	if(!test_set3) return false;
+	mdset_destroy(test_set3);
+	bstream_destroy(test_stream3);
 
 	return true;
 }

@@ -195,10 +195,25 @@ mdset_t *mdset_snew(bstream_t *haystack){
 	if(flag==MDSET_COUNTEDVALUES){
 		bstream_t label_source_stream=bstream_subset(haystack_buffer,0,bstream_find(haystack_buffer,' '));
 		label_source=(short)btoi(label_source_stream);
-		haystack_buffer=bstream_subset(haystack_buffer,label_source_stream.length,-1);
+		haystack_buffer=bstream_subset(haystack_buffer,label_source_stream.length+1,-1);
+	}
+	printf("label_source=%d\n",label_source);
+
+	//If label_source==1||11 then we need to get a counted value length
+	//	also some error checking
+	if(label_source!=-1 && label_source!=1 && label_source!=11){
+		printf("Corrupted label source!\n");
+		return NULL;
+	}
+	//Is label source 1 or 11? -1 is the only other option after that error check
+	int cv_length=-1;
+	if(label_source>0){
+		bstream_t cv_length_stream=bstream_subset(haystack_buffer,0,bstream_find(haystack_buffer,' '));
+		cv_length=btoi(cv_length_stream);
+		haystack_buffer=bstream_subset(haystack_buffer,cv_length_stream.length+1,-1);
 	}
 
-	bstream_t counted_value=bstream_subset(haystack_buffer,0,bstream_find(haystack_buffer,' '));
+	bstream_t counted_value=bstream_subset(haystack_buffer,0,(cv_length>=0)?cv_length:bstream_find(haystack_buffer,' '));
 	printf("Counted value = ");
 	fwrite(counted_value.stream,sizeof(char),counted_value.length,stdout);
 	printf("\n");
