@@ -190,6 +190,14 @@ mdset_t *mdset_snew(bstream_t *haystack){
 	
 	haystack_buffer=bstream_subset(haystack_buffer,flag_stream.length+1,-1);
 
+	//Is LABELSOURCE==VARLABEL
+	short label_source=-1;
+	if(flag==MDSET_COUNTEDVALUES){
+		bstream_t label_source_stream=bstream_subset(haystack_buffer,0,bstream_find(haystack_buffer,' '));
+		label_source=(short)btoi(label_source_stream);
+		haystack_buffer=bstream_subset(haystack_buffer,label_source_stream.length,-1);
+	}
+
 	bstream_t counted_value=bstream_subset(haystack_buffer,0,bstream_find(haystack_buffer,' '));
 	printf("Counted value = ");
 	fwrite(counted_value.stream,sizeof(char),counted_value.length,stdout);

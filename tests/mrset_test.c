@@ -10,15 +10,25 @@ bool test_mcset(void){
 	mcset_t *test_set=mcset_snew(test_stream);
 	if(!test_set) return false;
 	mcset_destroy(test_set);
+	bstream_destroy(test_stream);
 	return true;
 }
 
 bool test_mdset(void){
-	char test_string[]="$b=D 55 0  g e f d";
-	bstream_t *test_stream=bstream_cnew(test_string,20);
-	mdset_t *test_set=mdset_snew(test_stream);
-	if(!test_set) return false;
-	mdset_destroy(test_set);
+	char test_string1[]="$b=D 55 0  g e f d";
+	bstream_t *test_stream1=bstream_cnew(test_string1,20);
+	mdset_t *test_set1=mdset_snew(test_stream1);
+	if(!test_set1) return false;
+	mdset_destroy(test_set1);
+	bstream_destroy(test_stream1);
+
+	char test_string2[]="$d=E 1 2 34 13 third mdgroup k l m";
+	bstream_t *test_stream2=bstream_cnew(test_string2,34);
+	mdset_t *test_set2=mdset_snew(test_stream2);
+	if(!test_set2) return false;
+	mdset_destroy(test_set2);
+	bstream_destroy(test_stream2);
+
 	return true;
 }
 

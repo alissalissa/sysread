@@ -28,4 +28,8 @@ bstream_t bstream_subset(bstream_t,int,int);
 int bstream_find(bstream_t,char);
 int bstream_count(bstream_t,char);
 
+//Convert
+char *bstream_cstr(bstream_t);
+int btoi(bstream_t);
+
 #endif

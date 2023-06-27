@@ -120,3 +120,18 @@ int bstream_count(bstream_t haystack,char delimiter){
             ret++;
     return ret; 
 }
+
+//Converters
+char *bstream_cstr(bstream_t haystack){
+	char *ret=(char*)calloc(haystack.length+1,sizeof(char));
+	memcpy(ret,haystack.stream,haystack.length);
+	ret[haystack.length]='\0';
+	return ret;
+}
+
+int btoi(bstream_t haystack){
+	char *buffer=bstream_cstr(haystack);
+	int ret=atoi(buffer);
+	free(buffer);
+	return ret;
+}
