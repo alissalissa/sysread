@@ -18,7 +18,7 @@ mrset_t *mrset_new(int32_t record_type,int32_t subtype,int32_t mcset_c,mcset_t *
 		ret->mcs[i]=mcset_cnew(mcs[i]);
 		if(!ret->mcs[i]){
 			for(int j=0;j<i;j++)
-				mdset_destroy(ret->mcs[j]);
+				mcset_destroy(ret->mcs[j]);
 			free(ret->mcs);
 			return NULL;
 		}
@@ -48,6 +48,44 @@ mrset_t *mrset_new(int32_t record_type,int32_t subtype,int32_t mcset_c,mcset_t *
 
 	ret->constructed=true;
 	return ret;
+}
+
+mrset_t *mrset_fnew(FILE *sys_handle){
+	if(!sys_handle) return NULL;
+
+	int32_t record_type;
+	int32_t subtype;
+	int32_t size; //Should always equal 1
+	int32_t count;
+
+	//Read in the sequence of descriptive data
+	fread(&record_type,sizeof(int32_t),1,sys_handle);
+	if(feof(sys_handle) || ferror(sys_handle)) return NULL;
+	fread(&subtype,sizeof(int32_t),1,sys_handle);
+	if(feof(sys_handle) || ferror(sys_handle)) return NULL;
+	fread(&size,sizeof(int32_t),1,sys_handle);
+	if(feof(sys_handle) || ferror(sys_handle)) return NULL;
+	fread(&count,sizeof(int32_t),1,sys_handle);
+	if(feof(sys_handle) || ferror(sys_handle)) return NULL;
+
+	//FIXME is there a more efficient way to do this?  Like reading the whole block at once?
+	//Read in the whole rest of the stream
+	bstream_t *stream=bstream_new();
+	for(int i=0;i<count;i++)
+		bstream_append(stream,fgetc(sys_handle));
+	if(ferror(sys_handle) || feof(sys_handle)) return NULL;
+
+	//Let's get the individual records for reading
+	int num_records=bstream_count(*stream,0x0a)+1;
+	bstream_t **records=bstream_split(*stream,0x0a);
+	//TODO how do we handle memory allocation for the actual record sets?
+}
+
+char mrset_stream_identify(bstream_t haystack){
+	if(haystack.stream[0]!='$') return MRSET_ERROR;
+	int index=bstream_find(haystack,'=');
+	char flag=haystack.stream[index+1];
+	return (flag!=MDSET_VARLABELS && flag!=MDSET_COUNTEDVALUES && flag!=MCSET_FLAG)?MRSET_ERROR:flag;
 }
 
 //Multiple Category Sets

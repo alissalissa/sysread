@@ -15,6 +15,7 @@
 const char MDSET_VARLABELS='D';
 const char MDSET_COUNTEDVALUES='E';
 const char MCSET_FLAG='C';
+const char MRSET_ERROR=-1;
 
 //Multiple category Set
 typedef struct mcset{
