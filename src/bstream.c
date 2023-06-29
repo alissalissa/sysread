@@ -9,7 +9,7 @@ bstream_t *bstream_new(void){
     return ret;
 }
 
-bstream_t *bstream_cnew(char *haystack,int32_t length){
+bstream_t *bstream_char_new(char *haystack,int32_t length){
 	bstream_t *ret=bstream_new();
 	ret->length=length;
 	ret->stream=(char*)calloc(length,sizeof(char));
@@ -17,7 +17,7 @@ bstream_t *bstream_cnew(char *haystack,int32_t length){
 	return ret;
 }
 
-bstream_t *bstream_copy(bstream_t *haystack){
+bstream_t *bstream_cnew(bstream_t *haystack){
     bstream_t *ret=bstream_new();
     if(!ret) return NULL;
     ret->length=haystack->length;
@@ -80,15 +80,15 @@ char bstream_pop(bstream_t *haystack){
 bstream_t **bstream_split(bstream_t haystack,char delimiter){
 	int count=bstream_count(haystack,delimiter);
 	bstream_t **dest=(bstream_t**)calloc(count+1,sizeof(bstream_t*));
-    bstream_t *modable=bstream_copy(&haystack);
+    bstream_t *modable=bstream_cnew(&haystack);
 	for(int i=0;i<count;i++){
 		bstream_t subset_buffer=bstream_subset(*modable,0,bstream_find(*modable,delimiter));
-        dest[i]=bstream_copy(&subset_buffer);
+        dest[i]=bstream_cnew(&subset_buffer);
         bstream_t modable_buffer=bstream_subset(*modable,bstream_find(*modable,delimiter)+1,-1);
 		bstream_destroy(modable);
-        modable=bstream_copy(&modable_buffer);
+        modable=bstream_cnew(&modable_buffer);
 	}
-	dest[count]=bstream_copy(modable);
+	dest[count]=bstream_cnew(modable);
     return dest;
 }
 

@@ -1,16 +1,66 @@
 #include "mrset.h"
 
+//One struct to rule them all
+mrset_t *mrset_new(int32_t record_type,int32_t subtype,int32_t mcset_c,mcset_t **mcs,int32_t mdset_c,mdset_t **mds){
+	mrset_t *ret=malloc(sizeof(mrset_t));
+	if(!ret) return NULL;
+	
+	ret->record_type=record_type;
+	ret->subtype=subtype;
+
+	ret->mcset_c=mcset_c;
+	ret->mcs=(mcset_t**)calloc(mcset_c,sizeof(mcset_t*));
+	if(!ret->mcs){
+		free(ret);
+		return NULL;
+	}
+	for(int i=0;i<ret->mcset_c;i++){
+		ret->mcs[i]=mcset_cnew(mcs[i]);
+		if(!ret->mcs[i]){
+			for(int j=0;j<i;j++)
+				mdset_destroy(ret->mcs[j]);
+			free(ret->mcs);
+			return NULL;
+		}
+	}
+
+	ret->mdset_c=mdset_c;
+	ret->mds=(mdset_t**)calloc(ret->mdset_c,sizeof(mdset_t*));
+	if(!ret->mds){
+		for(int i=0;i<ret->mcset_c;i++)
+			mcset_destroy(ret->mcs[i]);
+		free(ret->mcs);
+		free(ret);
+		return NULL;
+	}
+	for(int i=0;i<ret->mdset_c;i++){
+		ret->mds[i]=mdset_cnew(mds[i]);
+		if(!ret->mds[i]){
+			for(int j=0;j<i;j++)
+				mdset_destroy(ret->mds[j]);
+			free(ret->mds);
+			for(int j=0;j<ret->mcset_c;j++)
+				mcset_destroy(ret->mcs[j]);
+			free(ret->mcs);
+			return NULL;
+		}
+	}
+
+	ret->constructed=true;
+	return ret;
+}
+
 //Multiple Category Sets
 mcset_t *mcset_new(bstream_t *set_name,int32_t record_type,bstream_t *label,int32_t count,bstream_t **variables){
 	
 	mcset_t *ret=(mcset_t*)malloc(sizeof(mcset_t));
-	ret->set_name=bstream_copy(set_name);
+	ret->set_name=bstream_cnew(set_name);
 	if(!ret->set_name){
 		free(ret);
 		return NULL;
 	}
 	ret->record_type=record_type;
-	ret->label=bstream_copy(label);
+	ret->label=bstream_cnew(label);
 	if(!ret->label){
 		bstream_destroy(ret->set_name);
 		free(ret);
@@ -25,7 +75,7 @@ mcset_t *mcset_new(bstream_t *set_name,int32_t record_type,bstream_t *label,int3
 		return NULL;
 	}
 	for(int i=0;i<count;i++){
-		ret->variables[i]=bstream_copy(variables[i]);
+		ret->variables[i]=bstream_cnew(variables[i]);
 		if(!ret->variables[i]){
 			for(int j=0;j<i;j++)
 				bstream_destroy(ret->variables[j]);
@@ -119,6 +169,53 @@ bool mcset_destroy(mcset_t *haystack){
 	return true;
 }
 
+mcset_t *mcset_cnew(mcset_t *haystack){
+	if(!haystack) return NULL;
+	
+	mcset_t *ret=(mcset_t*)malloc(sizeof(mcset_t));
+	if(!ret) return NULL;
+	
+	ret->set_name=bstream_cnew(haystack->set_name);
+	if(!ret->set_name){
+		free(ret);
+		return NULL;
+	}
+
+	ret->record_type=haystack->record_type;
+
+	ret->label=bstream_cnew(haystack->label);
+	if(!ret->label){
+		free(ret->set_name);
+		free(ret);
+		return NULL;
+	}
+
+	ret->count=haystack->count;
+
+	ret->variables=(bstream_t**)calloc(ret->count,sizeof(bstream_t*));
+	if(!ret->variables){
+		free(ret->label);
+		free(ret->set_name);
+		free(ret);
+		return NULL;
+	}
+	for(int i=0;i<ret->count;i++){
+		ret->variables[i]=bstream_cnew(haystack->variables[i]);
+		if(!ret->variables[i]){
+			for(int j=0;j<i;j++)
+				free(ret->variables[j]);
+			free(ret->label);
+			free(ret->set_name);
+			free(ret);
+			return NULL;
+		}
+
+	}
+
+	ret->constructed=true;
+	return ret;
+}
+
 /***********************************************************/
 //Multiple Dichotomy Sets
 mdset_t *mdset_new(bstream_t* set_name,int32_t record_type,char flag,bstream_t *label,int32_t count,bstream_t **variables,bstream_t *counted_value){
@@ -126,14 +223,14 @@ mdset_t *mdset_new(bstream_t* set_name,int32_t record_type,char flag,bstream_t *
 	mdset_t *ret=(mdset_t*)malloc(sizeof(mdset_t));
 	if(!ret) return NULL;
 
-	ret->set_name=bstream_copy(set_name);
+	ret->set_name=bstream_cnew(set_name);
 	if(!ret->set_name){
 		free(ret);
 		return NULL;
 	}
 	ret->record_type=record_type;
 	ret->flag=flag;
-	ret->label=bstream_copy(label);
+	ret->label=bstream_cnew(label);
 	if(!ret->label){
 		free(ret->set_name);
 		free(ret);
@@ -149,7 +246,7 @@ mdset_t *mdset_new(bstream_t* set_name,int32_t record_type,char flag,bstream_t *
 	}
 	for(int i=0;i<count;i++){
 		//Memory is allocated within bstream_copy
-		ret->variables[i]=bstream_copy(variables[i]);
+		ret->variables[i]=bstream_cnew(variables[i]);
 		if(!ret->variables[i]){
 			for(int j=0;j<i;j++)
 				bstream_destroy(ret->variables[i]);
@@ -160,13 +257,11 @@ mdset_t *mdset_new(bstream_t* set_name,int32_t record_type,char flag,bstream_t *
 			return NULL;
 		}
 	}
-	ret->counted_value=bstream_copy(counted_value);
+	ret->counted_value=bstream_cnew(counted_value);
 	ret->constructed=true;
 	return ret;
 }
 
-//TODO update to function independent of the passed flag
-//TODO update to include validity checking around string length
 mdset_t *mdset_snew(bstream_t *haystack){
 	assert(haystack);
 	if(haystack->stream[0]!='$' || haystack->length<2)
@@ -262,6 +357,64 @@ mdset_t *mdset_snew(bstream_t *haystack){
 	}
 	free(variables);
 
+	return ret;
+}
+
+mdset_t *mdset_cnew(mdset_t *haystack){
+	if(!haystack) return NULL;
+
+	mdset_t *ret=(mdset_t*)malloc(sizeof(mdset_t));
+	if(!ret) return NULL;
+
+	ret->set_name=bstream_cnew(haystack->set_name);
+	if(!ret->set_name){
+		free(ret);
+		return NULL;
+	}
+
+	ret->record_type=haystack->record_type;
+	ret->flag=haystack->flag;
+
+	ret->label=bstream_cnew(haystack->label);
+	if(!ret->label){
+		bstream_destroy(ret->set_name);
+		free(ret);
+		return NULL;
+	}
+
+	ret->count=haystack->count;
+	
+	ret->counted_value=bstream_cnew(haystack->counted_value);
+	if(!ret->counted_value){
+		bstream_destroy(ret->label);
+		bstream_destroy(ret->set_name);
+		free(ret);
+		return NULL;
+	}
+
+	ret->variables=(bstream_t**)calloc(ret->count,sizeof(bstream_t*));
+	if(!ret->variables){
+		bstream_destroy(ret->counted_value);
+		bstream_destroy(ret->set_name);
+		bstream_destroy(ret->label);
+		free(ret);
+		return NULL;
+	}
+	for(int i=0;i<ret->count;i++){
+		ret->variables[i]=bstream_cnew(haystack->variables[i]);
+		if(!ret->variables[i]){
+			for(int j=0;j<i;j++)
+				bstream_destroy(ret->variables[j]);
+			bstream_destroy(ret->label);
+			bstream_destroy(ret->set_name);
+			bstream_destroy(ret->counted_value);
+			free(ret->variables);
+			free(ret);
+			return NULL;
+		}
+	}
+
+	ret->constructed=true;
 	return ret;
 }
 

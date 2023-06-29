@@ -15,8 +15,8 @@ typedef struct BStream {
 
 //Factory
 bstream_t *bstream_new(void);
-bstream_t *bstream_cnew(char*,int32_t); //Constructs based on a string
-bstream_t *bstream_copy(bstream_t*);
+bstream_t *bstream_char_new(char*,int32_t); //Constructs based on a string
+bstream_t *bstream_cnew(bstream_t*);
 bool bstream_destroy(bstream_t*);
 
 //Manipulate

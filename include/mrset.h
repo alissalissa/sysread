@@ -29,6 +29,7 @@ typedef struct mcset{
 //mcset factories, new is only for use by snew
 mcset_t *mcset_new(bstream_t*,int32_t,bstream_t*,int32_t,bstream_t**);
 mcset_t *mcset_snew(bstream_t*); //snew reads from a byte stream rather than a file handle
+mcset_t *mcset_cnew(mcset_t*);
 bool mcset_destroy(mcset_t*);
 
 /*****************************************************************/
@@ -48,6 +49,27 @@ typedef struct mdset {
 //mdset factories, new is only for use by snew
 mdset_t *mdset_new(bstream_t*,int32_t,char,bstream_t*,int32_t,bstream_t**,bstream_t*);
 mdset_t *mdset_snew(bstream_t*);
+mdset_t *mdset_cnew(mdset_t*);
 bool mdset_destroy(mdset_t*);
+
+//TODO One struct to rule them all
+typedef struct mrset {
+	int32_t record_type;
+	int32_t subtype;
+	
+	int32_t mcset_c;
+	mcset_t **mcs;
+
+	int32_t mdset_c;
+	mdset_t **mds;
+
+	bool constructed;
+}mrset_t;
+
+mrset_t *mrset_new(int32_t,int32_t,int32_t,mcset_t**,int32_t,mdset_t**);
+mrset_t *mrset_fnew(FILE*);
+bool mrset_destroy(mrset_t*);
+//Some utility functions
+char mrset_stream_identify(bstream_t);
 
 #endif
