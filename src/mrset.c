@@ -81,6 +81,25 @@ mrset_t *mrset_fnew(FILE *sys_handle){
 	//TODO how do we handle memory allocation for the actual record sets?
 }
 
+bool mrset_destroy(mrset_t *haystack){
+	if(!haystack) return false;
+	if(!haystack->constructed) return false;
+	if(haystack->mcset_c>0){
+		for(int i=0;i<haystack->mcset_c;i++)
+			mcset_destroy(haystack->mcs[i]);
+	}
+	if(haystack->mcs)
+		free(haystack->mcs);
+	if(haystack->mdset_c>0){
+		for(int i=0;i<haystack->mdset_c;i++)
+			mdset_destroy(haystack->mds[i]);
+	}
+	if(haystack->mds)
+		free(haystack->mds);
+	haystack->constructed=false;
+	return true;
+}
+
 char mrset_stream_identify(bstream_t haystack){
 	if(haystack.stream[0]!='$') return MRSET_ERROR;
 	int index=bstream_find(haystack,'=');

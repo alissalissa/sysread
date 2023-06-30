@@ -1,8 +1,11 @@
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
-#include "mrset.h"
 #include "bstream.h"
+#include "mrset.h"
+#include "writer.h"
 
 bool test_mcset(void){
 	char test_string[]="$abcde=C 10 my mcgroup a b c";
@@ -22,12 +25,16 @@ bool test_mdset(void){
 	mdset_destroy(test_set1);
 	bstream_destroy(test_stream1);
 
+	printf("\n");
+
 	char test_string2[]="$d=E 1 2 34 13 third mdgroup k l m";
 	bstream_t *test_stream2=bstream_char_new(test_string2,34);
 	mdset_t *test_set2=mdset_snew(test_stream2);
 	if(!test_set2) return false;
 	mdset_destroy(test_set2);
 	bstream_destroy(test_stream2);
+
+	printf("\n");
 
 	char test_string3[]="$e=E 11 6 choice 0  n o p";
 	bstream_t *test_stream3=bstream_char_new(test_string3,25);
@@ -36,6 +43,20 @@ bool test_mdset(void){
 	mdset_destroy(test_set3);
 	bstream_destroy(test_stream3);
 
+	printf("\n");
+	return true;
+}
+
+bool test_mrset(void){
+	char p[256];
+	getcwd(p,256);
+	strcat(p,"/test.sys");
+	printf("Printing test data to %s\n",p);
+	write_mrset(p);
+	FILE *sys_handle=fopen(p,"r");
+	mrset_t *test_set=mrset_fnew(sys_handle);
+	if(!test_set) return false;
+	mrset_destroy(test_set);
 	return true;
 }
 
@@ -47,5 +68,8 @@ int main(int argc,char *argv[]){
 
 	printf("\nTesting mdset_t....\n");
 	printf("%s\n",(test_mdset())?"Passed!":"Failed :-(");
+	
+	printf("Testing mrset one struct to rule them all....\n");
+
 	return 0;
 }

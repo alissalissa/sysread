@@ -5,6 +5,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-bool write_mrset(char*);
+bool write_mrset(const char*);
 
 #endif
