@@ -1,49 +1,25 @@
 #include "mrset.h"
 
 //One struct to rule them all
-mrset_t *mrset_new(int32_t record_type,int32_t subtype,int32_t mcset_c,mcset_t **mcs,int32_t mdset_c,mdset_t **mds){
+mrset_t *mrset_new(int32_t record_type,int32_t subtype,int32_t mcs_count,int32_t mds_count,mcset_t **mcs,mdset_t **mds){
 	mrset_t *ret=malloc(sizeof(mrset_t));
 	if(!ret) return NULL;
 	
 	ret->record_type=record_type;
 	ret->subtype=subtype;
 
-	ret->mcset_c=mcset_c;
-	ret->mcs=(mcset_t**)calloc(mcset_c,sizeof(mcset_t*));
-	if(!ret->mcs){
-		free(ret);
-		return NULL;
-	}
-	for(int i=0;i<ret->mcset_c;i++){
-		ret->mcs[i]=mcset_cnew(mcs[i]);
-		if(!ret->mcs[i]){
-			for(int j=0;j<i;j++)
-				mcset_destroy(ret->mcs[j]);
-			free(ret->mcs);
-			return NULL;
-		}
+	if(mcs_count>0){
+		ret->mcs=(mcset_t**)calloc(mcs_count,sizeof(mcset_t*));
+		ret->mcs_count=mcs_count;
+		for(int i=0;i<ret->mcs_count;i++)
+			ret->mcs[i]=mcset_cnew(mcs[0]);
 	}
 
-	ret->mdset_c=mdset_c;
-	ret->mds=(mdset_t**)calloc(ret->mdset_c,sizeof(mdset_t*));
-	if(!ret->mds){
-		for(int i=0;i<ret->mcset_c;i++)
-			mcset_destroy(ret->mcs[i]);
-		free(ret->mcs);
-		free(ret);
-		return NULL;
-	}
-	for(int i=0;i<ret->mdset_c;i++){
-		ret->mds[i]=mdset_cnew(mds[i]);
-		if(!ret->mds[i]){
-			for(int j=0;j<i;j++)
-				mdset_destroy(ret->mds[j]);
-			free(ret->mds);
-			for(int j=0;j<ret->mcset_c;j++)
-				mcset_destroy(ret->mcs[j]);
-			free(ret->mcs);
-			return NULL;
-		}
+	if(mds_count>0){
+		ret->mds=(mdset_t**)calloc(mds_count,sizeof(mdset_t*));
+		ret->mds_count=mds_count;
+		for(int i=0;i<ret->mds_count;i++)
+			ret->mds[i]=mdset_cnew(mds[0]);
 	}
 
 	ret->constructed=true;
@@ -55,48 +31,80 @@ mrset_t *mrset_fnew(FILE *sys_handle){
 
 	int32_t record_type;
 	int32_t subtype;
-	int32_t size; //Should always equal 1
+	int32_t size; //Should always equal 1My 
 	int32_t count;
 
 	//Read in the sequence of descriptive data
 	fread(&record_type,sizeof(int32_t),1,sys_handle);
 	if(feof(sys_handle) || ferror(sys_handle)) return NULL;
+	printf("record_type=%d\n",record_type);
 	fread(&subtype,sizeof(int32_t),1,sys_handle);
 	if(feof(sys_handle) || ferror(sys_handle)) return NULL;
+	printf("subtype=%d\n",subtype);
 	fread(&size,sizeof(int32_t),1,sys_handle);
 	if(feof(sys_handle) || ferror(sys_handle)) return NULL;
+	printf("size=%d\n",size);
 	fread(&count,sizeof(int32_t),1,sys_handle);
 	if(feof(sys_handle) || ferror(sys_handle)) return NULL;
+	printf("count=%d\n",count);
 
-	//FIXME is there a more efficient way to do this?  Like reading the whole block at once?
 	//Read in the whole rest of the stream
 	bstream_t *stream=bstream_new();
-	for(int i=0;i<count;i++)
-		bstream_append(stream,fgetc(sys_handle));
+	stream->stream=(char*)malloc(count*sizeof(char));
+	fread(stream->stream,sizeof(char),count,sys_handle);
+	stream->length=count;
 	if(ferror(sys_handle) || feof(sys_handle)) return NULL;
+	fclose(sys_handle);
 
-	//Let's get the individual records for reading
-	int num_records=bstream_count(*stream,0x0a)+1;
-	bstream_t **records=bstream_split(*stream,0x0a);
-	//TODO how do we handle memory allocation for the actual record sets?
+	int32_t mcs_count=0;
+	int32_t mds_count=0;
+	mcset_t **mcs=NULL;
+	mdset_t **mds=NULL;
+	int32_t c=bstream_count(*stream,0x0a)+1;
+	bstream_t **feeds=bstream_split(*stream,0x0a);
+	if(!feeds){
+		printf("Error allocating stream memory...\n");
+		bstream_destroy(stream);
+		return NULL;
+	}
+	for(int i=0;i<c;i++){
+		if(mrset_stream_identify(*feeds[i])==MCSET_FLAG){
+			mcs_count++;
+			if(!mcs)
+				mcs=(mcset_t**)malloc(sizeof(mcset_t*));
+			else
+				mcs=(mcset_t**)realloc(mcs,sizeof(mcset_t*)*mcs_count);
+			mcs[mcs_count-1]=mcset_snew(feeds[i]);
+		}else if(mrset_stream_identify(*feeds[i])==MDSET_COUNTEDVALUES || mrset_stream_identify(*feeds[i])==MDSET_VARLABELS){
+			mds_count++;
+			if(!mds)
+				mds=(mdset_t**)malloc(sizeof(mdset_t*));
+			else
+				mds=(mdset_t**)realloc(mds,sizeof(mdset_t*)*mds_count);
+			mds[mds_count-1]=mdset_snew(feeds[i]);
+		}
+	}
+
+	mrset_t *ret=mrset_new(record_type,subtype,mcs_count,mds_count,mcs,mds);
+
+	for(int i=0;i<c;i++)
+		bstream_destroy(feeds[i]);
+	free(feeds);
+	for(int i=0;i<mds_count;i++)
+		mdset_destroy(mds[i]);
+	free(mds);
+	for(int i=0;i<mcs_count;i++)
+		mcset_destroy(mcs[i]);
+	free(mcs);
+	bstream_destroy(stream);
+	return ret;
 }
 
 bool mrset_destroy(mrset_t *haystack){
 	if(!haystack) return false;
 	if(!haystack->constructed) return false;
-	if(haystack->mcset_c>0){
-		for(int i=0;i<haystack->mcset_c;i++)
-			mcset_destroy(haystack->mcs[i]);
-	}
-	if(haystack->mcs)
-		free(haystack->mcs);
-	if(haystack->mdset_c>0){
-		for(int i=0;i<haystack->mdset_c;i++)
-			mdset_destroy(haystack->mds[i]);
-	}
-	if(haystack->mds)
-		free(haystack->mds);
-	haystack->constructed=false;
+	if(haystack->mds) free(haystack->mds);
+	if(haystack->mcs) free(haystack->mcs);
 	return true;
 }
 

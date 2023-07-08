@@ -3,6 +3,7 @@
 #define MRSET_H
 
 #include <assert.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -16,6 +17,8 @@ const char MDSET_VARLABELS='D';
 const char MDSET_COUNTEDVALUES='E';
 const char MCSET_FLAG='C';
 const char MRSET_ERROR=-1;
+
+//MRSET IS THE ONLY DATA STRUCTURE THE USER SHOULD BE CONSTRUCTING
 
 //Multiple category Set
 typedef struct mcset{
@@ -53,21 +56,22 @@ mdset_t *mdset_snew(bstream_t*);
 mdset_t *mdset_cnew(mdset_t*);
 bool mdset_destroy(mdset_t*);
 
-//TODO One struct to rule them all
+//One struct to rule them all
+//FIXME ARG! It's a list of mrsets after all!
 typedef struct mrset {
 	int32_t record_type;
 	int32_t subtype;
-	
-	int32_t mcset_c;
-	mcset_t **mcs;
+	int32_t mcs_count;
+	int32_t mds_count;
+	char flag;
 
-	int32_t mdset_c;
+	mcset_t **mcs;
 	mdset_t **mds;
 
 	bool constructed;
 }mrset_t;
 
-mrset_t *mrset_new(int32_t,int32_t,int32_t,mcset_t**,int32_t,mdset_t**);
+mrset_t *mrset_new(int32_t,int32_t,int32_t,int32_t,mcset_t**,mdset_t**);
 mrset_t *mrset_fnew(FILE*);
 bool mrset_destroy(mrset_t*);
 //Some utility functions

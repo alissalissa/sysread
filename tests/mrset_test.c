@@ -70,6 +70,7 @@ int main(int argc,char *argv[]){
 	printf("%s\n",(test_mdset())?"Passed!":"Failed :-(");
 	
 	printf("Testing mrset one struct to rule them all....\n");
+	printf("%s\n",(test_mrset())?"Passed!\n":"Failed :(\n");
 
 	return 0;
 }

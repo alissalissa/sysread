@@ -3,6 +3,7 @@
 #define WRITER_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 bool write_mrset(const char*);
