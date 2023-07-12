@@ -7,5 +7,6 @@
 #include <stdio.h>
 
 bool write_mrset(const char*);
+bool write_epir(const char*);
 
 #endif

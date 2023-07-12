@@ -57,7 +57,6 @@ mdset_t *mdset_cnew(mdset_t*);
 bool mdset_destroy(mdset_t*);
 
 //One struct to rule them all
-//FIXME ARG! It's a list of mrsets after all!
 typedef struct mrset {
 	int32_t record_type;
 	int32_t subtype;

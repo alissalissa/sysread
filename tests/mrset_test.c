@@ -60,7 +60,6 @@ bool test_mrset(void){
 	return true;
 }
 
-//TODO write test for one mrset struct to rule them all
 int main(int argc,char *argv[]){
 	printf("Testing mcset_t...\n");
 	bool success=test_mcset();

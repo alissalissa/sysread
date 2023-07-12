@@ -35,3 +35,20 @@ bool write_mrset(const char *path){
 	fclose(handle);
 	return true;
 }
+
+bool write_epir(const char *path){
+	char test_data[]="TESTING INFO";
+	const int32_t type=7;
+	const int32_t subtype=10;
+	const int32_t size=1;
+	const int32_t count=12;
+	FILE *handle=fopen(path,"w");
+	if(!handle) return false;
+	fwrite(&type,sizeof(int32_t),1,handle);
+	fwrite(&subtype,sizeof(int32_t),1,handle);
+	fwrite(&size,sizeof(int32_t),1,handle);
+	fwrite(&count,sizeof(int32_t),1,handle);
+	fwrite(test_data,size,count,handle);
+	fclose(handle);
+	return true;
+}
