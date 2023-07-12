@@ -34,3 +34,4 @@
 # Support files
 *.sys
 tests/mrset_test
+tests/epir_test

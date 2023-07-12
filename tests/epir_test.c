@@ -4,7 +4,7 @@
 
 int main(int argc,char *argv[]){
 	const char path[]="./epir.sys";
-	printf("Testing sysepir.....");
+	printf("Testing sysepir.....\n");
 	write_epir(path);
 	FILE *epir_handle=fopen(path,"r");
 	sysepir_t *test_epir=sysepir_fnew(epir_handle);
