@@ -24,4 +24,7 @@ int *split(char**,char*,int,char);
 //Finds the first occurrence
 int find_first(char*,int,char);
 
+//Is this value one of the following?
+bool one_of(int,int,...);
+
 #endif

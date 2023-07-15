@@ -71,3 +71,16 @@ int find_first(char *haystack,int haystack_length,char delimiter){
 		if(haystack[i]==delimiter) return i;
 	return -1;
 }
+
+bool one_of(int haystack,int n,...){
+	va_list args;
+	va_start(args,n);
+	for(int i=0;i<n;i++){
+		if(haystack==va_arg(args,int)){
+			va_end(args);
+			return true;
+		}
+	}
+	va_end(args);
+	return false;
+}
