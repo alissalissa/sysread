@@ -6,7 +6,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "disppar.h"
+
 bool write_mrset(const char*);
 bool write_epir(const char*);
+bool write_disppar(const char*);
 
 #endif

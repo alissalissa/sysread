@@ -45,6 +45,7 @@ disppar_t *disppar_new(int32_t record_type,int32_t subtype,int32_t count,int32_t
 	return ret;
 }
 
+//TODO Add debug messages
 disppar_t *disppar_fnew(FILE *sys_handle){
 	if(!sys_handle)
 		return NULL;
@@ -74,7 +75,7 @@ disppar_t *disppar_fnew(FILE *sys_handle){
 	int32_t *alignments=(count>0)?((int32_t*)calloc(count,sizeof(int32_t))):NULL;
 
 	if(count>0){
-		for(int i=0;i<count;i++){
+		for(int i=0;i<(count/3);i++){
 			fread(&(measures[i]),sizeof(int32_t),1,sys_handle);
 			if(!one_of(measures[i],4,MEASURE_NOMINAL,MEASURE_ORDINAL,MEASURE_SCALE,MEASURE_UNKNOWN) || ferror(sys_handle) || feof(sys_handle)){
 				free(measures);
@@ -82,6 +83,7 @@ disppar_t *disppar_fnew(FILE *sys_handle){
 				free(alignments);
 				return NULL;
 			}
+			printf("Measures[%d]=%d\n",i,measures[i]);
 			fread(&(widths[i]),sizeof(int32_t),1,sys_handle);
 			if(ferror(sys_handle) || feof(sys_handle)){
 				free(measures);
@@ -89,6 +91,7 @@ disppar_t *disppar_fnew(FILE *sys_handle){
 				free(alignments);
 				return NULL;
 			}
+			printf("widths[%d]=%d\n",i,widths[i]);
 			fread(&(alignments[i]),sizeof(int32_t),1,sys_handle);
 			if(!one_of(alignments[i],3,ALIGN_CENTER,ALIGN_LEFT,ALIGN_RIGHT) || ferror(sys_handle)){
 				free(measures);
@@ -96,6 +99,7 @@ disppar_t *disppar_fnew(FILE *sys_handle){
 				free(alignments);
 				return NULL;
 			}
+			printf("alignments[%d]=%d\n",i,alignments[i]);
 		}
 	}
 

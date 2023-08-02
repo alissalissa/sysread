@@ -10,14 +10,14 @@
 
 #include "sfutil.h"
 
-const int32_t MEASURE_UNKNOWN=0;
-const int32_t MEASURE_NOMINAL=1;
-const int32_t MEASURE_ORDINAL=2;
-const int32_t MEASURE_SCALE=3;
+#define MEASURE_UNKNOWN (int32_t)0
+#define MEASURE_NOMINAL (int32_t)1
+#define MEASURE_ORDINAL (int32_t)2
+#define MEASURE_SCALE (int32_t)3
 
-const int32_t ALIGN_LEFT=0;
-const int32_t ALIGN_RIGHT=1;
-const int32_t ALIGN_CENTER=2;
+#define ALIGN_LEFT (int32_t)0
+#define ALIGN_RIGHT (int32_t)1
+#define ALIGN_CENTER (int32_t)2
 
 //TODO implement a unit test for this struct
 typedef struct DisplayParameters {

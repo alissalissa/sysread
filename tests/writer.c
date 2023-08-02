@@ -52,3 +52,46 @@ bool write_epir(const char *path){
 	fclose(handle);
 	return true;
 }
+
+bool write_disppar(const char *path){
+	int32_t rec_type=7;
+	int32_t subtype=11;
+	int32_t size=4;
+	int32_t count=12;
+	int32_t measures[]={
+		MEASURE_NOMINAL,
+		MEASURE_ORDINAL,
+		MEASURE_SCALE,
+		MEASURE_UNKNOWN
+	};
+	int32_t widths[]={
+		5,
+		10,
+		20,
+		30
+	};
+	int32_t alignments[]={
+		ALIGN_LEFT,
+		ALIGN_CENTER,
+		ALIGN_RIGHT,
+		ALIGN_CENTER
+	};
+	FILE *handle=fopen(path,"w");
+	if(!handle) return false;
+
+	fwrite(&rec_type,sizeof(int32_t),1,handle);
+	fwrite(&subtype,sizeof(int32_t),1,handle);
+	fwrite(&size,sizeof(int32_t),1,handle);
+	fwrite(&count,sizeof(int32_t),1,handle);
+	for(int i=0;i<count/3;i++){
+		fwrite(&(measures[i]),sizeof(int32_t),1,handle);
+		fwrite(&(widths[i]),sizeof(int32_t),1,handle);
+		fwrite(&(alignments[i]),sizeof(int32_t),1,handle);
+	}
+	if(ferror(handle)){
+		fclose(handle);
+		return false;
+	}
+	fclose(handle);
+	return true;
+}
