@@ -19,7 +19,6 @@
 #define ALIGN_RIGHT (int32_t)1
 #define ALIGN_CENTER (int32_t)2
 
-//TODO implement a unit test for this struct
 typedef struct DisplayParameters {
 	int32_t record_type;
 	int32_t subtype;
