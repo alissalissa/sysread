@@ -1,14 +1,18 @@
 #include "sysdoc.h"
 
-sysdoc_t *sysdoc_new(int32_t record_type,int32_t n_lines,char **lines){
+//TODO add error handling for the calloc calls
+//TODO add error handling for if length!=DOC_LINE_LENGTH
+sysdoc_t *sysdoc_new(int32_t record_type,int32_t n_lines,bstream_t *lines){
 	if(record_type!=6) return NULL;
 	sysdoc_t *ret=(sysdoc_t*)malloc(sizeof(sysdoc_t));
 	ret->record_type=record_type;
 	ret->n_lines=n_lines;
-	ret->lines=(char**)calloc(ret->n_lines,sizeof(char*));
+	ret->lines=(bstream_t*)calloc(ret->n_lines,sizeof(bstream_t));
 	for(int i=0;i<ret->n_lines;i++){
-		ret->lines[i]=(char*)calloc(DOC_LINE_LENGTH,sizeof(char));
-		memcpy(ret->lines[i],lines[i],DOC_LINE_LENGTH);
+		//We don't use the copy factory (cnew) here because that produces a pointer
+		ret->lines[i].stream=(char*)calloc(DOC_LINE_LENGTH,sizeof(char));
+		ret->lines[i].length=DOC_LINE_LENGTH;
+		memcpy(ret->lines[i].stream,lines[i].stream,DOC_LINE_LENGTH);
 	}
 	ret->constructed=true;
 	return ret;
@@ -31,13 +35,14 @@ sysdoc_t *sysdoc_fnew(FILE *handle){
 		return NULL;
 	}
 
-	char **lines=(char**)calloc(n_lines,sizeof(char*));
+	bstream_t *lines=(bstream_t*)calloc(n_lines,sizeof(bstream_t));
 	for(int i=0;i<n_lines;i++){
-		lines[i]=(char*)calloc(DOC_LINE_LENGTH,sizeof(char));
-		fread(lines[i],sizeof(char),DOC_LINE_LENGTH,handle);
+		lines[i].stream=(char*)calloc(DOC_LINE_LENGTH,sizeof(char));
+		fread(lines[i].stream,sizeof(char),DOC_LINE_LENGTH,handle);
+		lines[i].length=DOC_LINE_LENGTH;
 		if(ferror(handle)){
 			for(int j=0;j<=i;j++){
-				free(lines[j]);
+				free(lines[j].stream);
 			}
 			free(lines);
 			printf("Error / corruption in document record lines...\n");
@@ -47,7 +52,7 @@ sysdoc_t *sysdoc_fnew(FILE *handle){
 
 	sysdoc_t *ret=sysdoc_new(record_type,n_lines,lines);
 	for(int i=0;i<n_lines;i++)
-		free(lines[i]);
+		free(lines[i].stream);
 	free(lines);
 	return ret;
 }
@@ -56,7 +61,7 @@ bool sysdoc_destroy(sysdoc_t *haystack){
 	if(!haystack) return false;
 	else if(!haystack->constructed) return false;
 	for(int i=0;i<haystack->n_lines;i++)
-		free(haystack->lines[i]);
+		free(haystack->lines[i].stream); //we don't use destructor because that's for pointers
 	free(haystack->lines);
 	free(haystack);
 	return true;
