@@ -84,3 +84,16 @@ bool one_of(int haystack,int n,...){
 	va_end(args);
 	return false;
 }
+
+bool bstream_one_of(bstream_t haystack,int n,...){
+	va_list args;
+	va_start(args,n);
+	for(int i=0;i<n;i++){
+		if(bstream_cmp(haystack,va_arg(args,bstream_t))){
+			va_end(args);
+			return true;
+		}
+	}
+	va_end(args);
+	return false;
+}

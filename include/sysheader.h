@@ -18,6 +18,7 @@
 
 #include "sfutil.h"
 
+//TODO refactor to use bstreams
 typedef struct sysheader {
 	char *rec_type;
 	char *prod_name;

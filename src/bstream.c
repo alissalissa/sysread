@@ -135,3 +135,11 @@ int btoi(bstream_t haystack){
 	free(buffer);
 	return ret;
 }
+
+bool bstream_cmp(bstream_t first,bstream_t second){
+	if(first.length!=second.length) return false;
+	for(int i=0;i<first.length;i++)
+		if(first.stream[i]!=second.stream[i])
+			return false;
+	return true;
+}

@@ -32,4 +32,8 @@ int bstream_count(bstream_t,char);
 char *bstream_cstr(bstream_t);
 int btoi(bstream_t);
 
+//other operations
+//are the streams equal?
+bool bstream_cmp(bstream_t,bstream_t);
+
 #endif

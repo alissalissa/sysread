@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "bstream.h"
+
 void mass_free(int,...);
 
 //For use with header loading from file.
@@ -26,5 +28,6 @@ int find_first(char*,int,char);
 
 //Is this value one of the following?
 bool one_of(int,int,...);
+bool bstream_one_of(bstream_t,int,...);
 
 #endif
