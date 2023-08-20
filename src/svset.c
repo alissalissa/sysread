@@ -69,7 +69,12 @@ void svset_copy(svset_t *dest,svset_t *src){
 		}
         for(int i=0;i<src->count;i++){
             dest->var_names[i].stream=(char*)calloc(src->var_names[i].length,sizeof(char));
-            //TODO insert error handling for calloc
+            if(!dest->var_names[i].stream){
+				for(int j=0;j<i;j++)
+					free(dest->var_names[j].stream);
+				free(dest);
+				return;
+			}
 			memcpy(dest->var_names[i].stream,src->var_names[i].stream,src->var_names[i].length);
             dest->var_names[i].length=src->var_names[i].length;
         }
@@ -92,7 +97,13 @@ svsetlist_t *svsetlist_new(int32_t rec_type,int32_t subtype,int32_t count,svset_
 		}
 		for(int i=0;i<ret->count;i++){
 			svset_copy(ret->sets[i],sets[i]);
-			//TODO Error handling for copy failure
+			if(!ret->sets[i]){
+				for(int j=0;j<i;j++)
+					svset_destroy(ret->sets[j]);
+				free(ret->sets);
+				free(ret);
+				return NULL;
+			}
 		}
 	}else if(ret->count==0){
 		ret->sets=NULL;
