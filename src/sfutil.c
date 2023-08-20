@@ -35,7 +35,7 @@ char *subset(char *haystack,int start,int length){
 	return ret;
 }
 
-int *split(char **dest,char *haystack,int haystack_length,char delimiter){
+/*int *split(char **dest,char *haystack,int haystack_length,char delimiter){
 	int count=0;
 	char *modable=(char*)calloc(haystack_length,sizeof(char));
 	memcpy(modable,haystack,haystack_length);
@@ -64,13 +64,13 @@ int *split(char **dest,char *haystack,int haystack_length,char delimiter){
 	memcpy(dest[count],modable,modable_length);
 	free(modable);
 	return ret;
-}
+}*/
 
-int find_first(char *haystack,int haystack_length,char delimiter){
+/*int find_first(char *haystack,int haystack_length,char delimiter){
 	for(int i=0;i<haystack_length;i++)
 		if(haystack[i]==delimiter) return i;
 	return -1;
-}
+}*/
 
 bool one_of(int haystack,int n,...){
 	va_list args;

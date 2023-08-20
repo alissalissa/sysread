@@ -22,9 +22,9 @@ char *subset(char*,int,int);
 //  it is the number of elements.
 //  Remaining elements are the lengths of the names,
 //      Which results in a size of number of labels +1
-int *split(char**,char*,int,char);
+//int *split(char**,char*,int,char);
 //Finds the first occurrence
-int find_first(char*,int,char);
+//int find_first(char*,int,char);
 
 //Is this value one of the following?
 bool one_of(int,int,...);
