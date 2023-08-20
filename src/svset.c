@@ -41,6 +41,12 @@ svset_t *svset_new(bstream_t *src){
 bool svset_destroy(svset_t *haystack){
     assert(haystack);
     if(!haystack->constructed) return false;
+    if(haystack->count>0){
+        for(int i=0;i<haystack->count;i++){
+            if(haystack->var_names[i].stream)
+                free(haystack->var_names[i].stream);
+        }
+    }
     free(haystack->var_names);
     free(haystack);
     return true;
