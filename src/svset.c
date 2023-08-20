@@ -26,6 +26,8 @@ svset_t *svset_new(bstream_t *src){
         ret->var_names[i].stream=calloc(var_names_buffer[i]->length,sizeof(char));
         memcpy(ret->var_names[i].stream,var_names_buffer[i]->stream,var_names_buffer[i]->length);
         ret->var_names[i].length=var_names_buffer[i]->length;
+        fwrite(ret->var_names[i].stream,sizeof(char),ret->var_names[i].length,stdout);
+        printf("\n");
     }
     for(int i=0;i<ret->count;i++)
         bstream_destroy(var_names_buffer[i]);
@@ -39,6 +41,7 @@ svset_t *svset_new(bstream_t *src){
 bool svset_destroy(svset_t *haystack){
     if(!haystack->constructed) return false;
     free(haystack->var_names);
+    free(haystack);
     haystack->constructed=false;
     return true;
 }
