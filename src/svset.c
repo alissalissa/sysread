@@ -52,7 +52,58 @@ bool svset_destroy(svset_t *haystack){
     return true;
 }
 
+void svset_copy(svset_t *dest,svset_t *src){
+    assert(src);
+    assert(src->count>=0);
+    if(!dest)
+        dest=(svset_t*)malloc(sizeof(svset_t));
+    dest->label=src->label;
+    dest->count=src->count;
+    if(src->count==0){
+        dest->var_names=NULL;
+    }else{
+        dest->var_names=(bstream_t*)calloc(dest->count,sizeof(bstream_t));
+        if(!dest->var_names){
+			free(dest);
+			return;
+		}
+        for(int i=0;i<src->count;i++){
+            dest->var_names[i].stream=(char*)calloc(src->var_names[i].length,sizeof(char));
+            //TODO insert error handling for calloc
+			memcpy(dest->var_names[i].stream,src->var_names[i].stream,src->var_names[i].length);
+            dest->var_names[i].length=src->var_names[i].length;
+        }
+    }
+    dest->constructed=true;
+}
+
 //Set list stuff
+svsetlist_t *svsetlist_new(int32_t rec_type,int32_t subtype,int32_t count,svset_t **sets){
+	if(rec_type!=SVSET_TYPE || subtype!=SVSET_SUBTYPE) return NULL;
+	svsetlist_t *ret=(svsetlist_t*)malloc(sizeof(svsetlist_t));
+	ret->rec_type=rec_type;
+	ret->subtype=subtype;
+	ret->count=count;
+	if(ret->count>0){
+		ret->sets=(svset_t**)calloc(ret->count,sizeof(svset_t*));
+		if(!ret->sets){
+			free(ret);
+			return NULL;
+		}
+		for(int i=0;i<ret->count;i++){
+			svset_copy(ret->sets[i],sets[i]);
+			//TODO Error handling for copy failure
+		}
+	}else if(ret->count==0){
+		ret->sets=NULL;
+	}else{
+		free(ret);
+		return NULL;
+	}
+	ret->constructed=true;
+	return ret;
+}
+
 bool svsetlist_destroy(svsetlist_t *haystack){
     assert(haystack);
     if(!haystack->constructed) return false;

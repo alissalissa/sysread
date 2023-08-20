@@ -11,8 +11,8 @@
 
 #include "bstream.h"
 
-#define SVSET_TYPE
-#define SVSET_SUBTYPE
+#define SVSET_TYPE 7
+#define SVSET_SUBTYPE 5
 #define SYSVSET_INT_SIZE 1
 
 typedef struct __individualset {
@@ -23,6 +23,7 @@ typedef struct __individualset {
 }svset_t;
 
 svset_t *svset_new(bstream_t*);
+void svset_copy(svset_t*,svset_t*);
 bool svset_destroy(svset_t*);
 
 typedef struct SysVSetList {
@@ -33,7 +34,7 @@ typedef struct SysVSetList {
     bool constructed;
 }svsetlist_t;
 
-svsetlist_t *svsetlist_new(int32_t,int32_t,svset_t*);
+svsetlist_t *svsetlist_new(int32_t,int32_t,int32_t,svset_t**);
 svsetlist_t *svsetlist_fnew(FILE*);
 bool svsetlist_destroy(svsetlist_t*);
 
