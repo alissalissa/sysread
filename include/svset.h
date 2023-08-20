@@ -28,7 +28,9 @@ bool svset_destroy(svset_t*);
 typedef struct SysVSetList {
     int32_t rec_type;
     int32_t subtype;
-    svset_t *sets;
+    int32_t count;
+    svset_t **sets;
+    bool constructed;
 }svsetlist_t;
 
 svsetlist_t *svsetlist_new(int32_t,int32_t,svset_t*);

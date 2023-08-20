@@ -45,3 +45,17 @@ bool svset_destroy(svset_t *haystack){
     free(haystack);
     return true;
 }
+
+//Set list stuff
+bool svsetlist_destroy(svsetlist_t *haystack){
+    assert(haystack);
+    if(!haystack->constructed) return false;
+    if(haystack->count>0){
+        for(int i=0;i<haystack->count;i++)
+            svset_destroy(haystack->sets[i]);
+        if(haystack->sets)
+            free(haystack->sets);
+    }
+    free(haystack);
+    return true;
+}
