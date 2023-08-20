@@ -39,9 +39,9 @@ svset_t *svset_new(bstream_t *src){
 }
 
 bool svset_destroy(svset_t *haystack){
+    assert(haystack);
     if(!haystack->constructed) return false;
     free(haystack->var_names);
     free(haystack);
-    haystack->constructed=false;
     return true;
 }

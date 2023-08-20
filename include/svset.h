@@ -3,6 +3,7 @@
 #ifndef SYSVSET_H
 #define SYSVSET_H
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -10,6 +11,8 @@
 
 #include "bstream.h"
 
+#define SVSET_TYPE
+#define SVSET_SUBTYPE
 #define SYSVSET_INT_SIZE 1
 
 typedef struct __individualset {
@@ -27,5 +30,9 @@ typedef struct SysVSetList {
     int32_t subtype;
     svset_t *sets;
 }svsetlist_t;
+
+svsetlist_t *svsetlist_new(int32_t,int32_t,svset_t*);
+svsetlist_t *svsetlist_fnew(FILE*);
+bool svsetlist_destroy(svsetlist_t*);
 
 #endif
