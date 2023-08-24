@@ -13,7 +13,7 @@
 
 #define SVSET_TYPE 7
 #define SVSET_SUBTYPE 5
-#define SYSVSET_INT_SIZE 1
+#define SYSVSET_BYTE_SIZE 1
 
 typedef struct __individualset {
     bstream_t label;
@@ -23,7 +23,7 @@ typedef struct __individualset {
 }svset_t;
 
 svset_t *svset_new(bstream_t*);
-void svset_copy(svset_t*,svset_t*);
+int svset_copy(svset_t*,svset_t*);
 bool svset_destroy(svset_t*);
 
 typedef struct SysVSetList {

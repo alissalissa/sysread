@@ -52,7 +52,8 @@ bool svset_destroy(svset_t *haystack){
     return true;
 }
 
-void svset_copy(svset_t *dest,svset_t *src){
+//FIXME why is this spitting out a NULL address?
+int svset_copy(svset_t *dest,svset_t *src){
     assert(src);
     assert(src->count>=0);
     if(!dest)
@@ -65,7 +66,7 @@ void svset_copy(svset_t *dest,svset_t *src){
         dest->var_names=(bstream_t*)calloc(dest->count,sizeof(bstream_t));
         if(!dest->var_names){
 			free(dest);
-			return;
+			return 1;
 		}
         for(int i=0;i<src->count;i++){
             dest->var_names[i].stream=(char*)calloc(src->var_names[i].length,sizeof(char));
@@ -73,13 +74,14 @@ void svset_copy(svset_t *dest,svset_t *src){
 				for(int j=0;j<i;j++)
 					free(dest->var_names[j].stream);
 				free(dest);
-				return;
+				return 2;
 			}
 			memcpy(dest->var_names[i].stream,src->var_names[i].stream,src->var_names[i].length);
             dest->var_names[i].length=src->var_names[i].length;
         }
     }
     dest->constructed=true;
+	return 0;
 }
 
 //Set list stuff
@@ -96,7 +98,8 @@ svsetlist_t *svsetlist_new(int32_t rec_type,int32_t subtype,int32_t count,svset_
 			return NULL;
 		}
 		for(int i=0;i<ret->count;i++){
-			svset_copy(ret->sets[i],sets[i]);
+			int copy_success=svset_copy(ret->sets[i],sets[i]);
+			printf("Copying %ssuccessful\n",(copy_success)?"Un":"");
 			if(!ret->sets[i]){
 				for(int j=0;j<i;j++)
 					svset_destroy(ret->sets[j]);
@@ -112,6 +115,77 @@ svsetlist_t *svsetlist_new(int32_t rec_type,int32_t subtype,int32_t count,svset_
 		return NULL;
 	}
 	ret->constructed=true;
+	return ret;
+}
+
+svsetlist_t *svsetlist_fnew(FILE *sys_handle){
+	assert(sys_handle);
+	int32_t rec_type=-1;
+	int32_t subtype=-1;
+	fread(&rec_type,sizeof(int32_t),1,sys_handle);
+	if(feof(sys_handle) || ferror(sys_handle) || rec_type!=SVSET_TYPE){
+		printf("Corrupted SVSET record type...\n");
+		return NULL;
+	}
+	printf("Record type = %d\n",rec_type);
+
+	fread(&subtype,sizeof(int32_t),1,sys_handle);
+	if(feof(sys_handle) || ferror(sys_handle) || subtype!=SVSET_SUBTYPE){
+		printf("Corrupted SVSET subtype...\n");
+		return NULL;
+	}
+	printf("Subtype = %d\n",subtype);
+	
+	//size check
+	int32_t size_check=-1;
+	fread(&size_check,sizeof(int32_t),1,sys_handle);
+	if(feof(sys_handle) || ferror(sys_handle) || size_check!=SYSVSET_BYTE_SIZE){
+		printf("Corrupted SVSET byte size...\n");
+		return NULL;
+	}
+	printf("size check = %d\n",size_check);
+
+	//How many bytes of data?
+	int32_t bytes=-1;
+	fread(&bytes,sizeof(int32_t),1,sys_handle);
+	if(bytes<0){
+		printf("Invalid number of SVSET bytes to be read...\n");
+		return NULL;
+	}
+	printf("Number of bytes: %d\n",bytes);
+
+	//read in the stream of bytes
+	bstream_t *raw_stream=(bstream_t*)malloc(sizeof(bstream_t));
+	if(!raw_stream) return NULL;
+	raw_stream->length=bytes;
+	raw_stream->stream=(char*)calloc(bytes,sizeof(char));
+	if(!raw_stream->stream){
+		free(raw_stream);
+		return NULL;
+	}
+	fread(raw_stream->stream,sizeof(char),raw_stream->length,sys_handle);
+	if(ferror(sys_handle)){
+		free(raw_stream->stream);
+		free(raw_stream);
+		return NULL;
+	}
+
+	//Parse the stream
+	int32_t count=bstream_count(*raw_stream,0x0a)+1;
+	printf("Number of lines: %d\n",count);
+
+	bstream_t **lines=bstream_split(*raw_stream,0x0a);
+	svset_t **sets=(svset_t**)calloc(count,sizeof(svset_t*));
+	for(int i=0;i<count;i++)
+		sets[i]=svset_new(lines[i]);
+
+	for(int i=0;i<count;i++)
+		bstream_destroy(lines[i]);
+	free(lines);
+	bstream_destroy(raw_stream);
+
+	svsetlist_t *ret=svsetlist_new(rec_type,subtype,count,sets);
+	//if svsetlist_new() fails, this will end up returning NULL anyway
 	return ret;
 }
 

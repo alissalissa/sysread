@@ -95,3 +95,24 @@ bool write_disppar(const char *path){
 	fclose(handle);
 	return true;
 }
+
+bool write_svset(const char *path){
+	char substance[]="one= a b c d\ntwo= e f g h\nthree= i j k l m n o p";
+	FILE *handle=fopen(path,"w");
+	if(!handle) return false;
+	int32_t rec_type=SVSET_TYPE;
+	int32_t subtype=SVSET_SUBTYPE;
+	int32_t byte_size=SYSVSET_BYTE_SIZE;
+	int32_t count=48;
+	fwrite(&rec_type,sizeof(int32_t),1,handle);
+	fwrite(&subtype,sizeof(int32_t),1,handle);
+	fwrite(&byte_size,sizeof(int32_t),1,handle);
+	fwrite(&count,sizeof(int32_t),1,handle);
+	fwrite(substance,sizeof(char),count,handle);
+	if(ferror(handle)){
+		fclose(handle);
+		return false;
+	}
+	fclose(handle);
+	return true;
+}

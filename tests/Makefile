@@ -11,7 +11,7 @@ compile:
 	gcc -g -o mrset_test -L../bin -Wl,-rpath,../bin -lsysfile writer.o mrset_test.o
 	gcc -g -o epir_test -L../bin -Wl,-rpath,../bin -lsysfile writer.o epir_test.o
 	gcc -g -o disppar_test -L../bin -Wl,-rpath,../bin -lsysfile writer.o disppar_test.o
-	gcc -g -o svtest -L../bin -Wl,-rpath,../bin -lsysfile svtest.o
+	gcc -g -o svtest -L../bin -Wl,-rpath,../bin -lsysfile svtest.o writer.o
 
 clean:
 	rm *.o *.sys epir_test mrset_test disppar_test svtest

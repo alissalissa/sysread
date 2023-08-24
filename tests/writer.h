@@ -7,9 +7,11 @@
 #include <stdio.h>
 
 #include "disppar.h"
+#include "svset.h"
 
 bool write_mrset(const char*);
 bool write_epir(const char*);
 bool write_disppar(const char*);
+bool write_svset(const char*);
 
 #endif
