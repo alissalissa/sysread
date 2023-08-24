@@ -52,7 +52,6 @@ bool svset_destroy(svset_t *haystack){
     return true;
 }
 
-//FIXME why is this spitting out a NULL address but no error code?
 int svset_copy(svset_t *dest,svset_t *src){
     assert(src);
     assert(src->count>=0);
