@@ -52,12 +52,11 @@ bool svset_destroy(svset_t *haystack){
     return true;
 }
 
-//FIXME why is this spitting out a NULL address?
+//FIXME why is this spitting out a NULL address but no error code?
 int svset_copy(svset_t *dest,svset_t *src){
     assert(src);
     assert(src->count>=0);
-    if(!dest)
-        dest=(svset_t*)malloc(sizeof(svset_t));
+    assert(dest);
     dest->label=src->label;
     dest->count=src->count;
     if(src->count==0){
@@ -98,8 +97,9 @@ svsetlist_t *svsetlist_new(int32_t rec_type,int32_t subtype,int32_t count,svset_
 			return NULL;
 		}
 		for(int i=0;i<ret->count;i++){
+			ret->sets[i]=(svset_t*)malloc(sizeof(svset_t));
 			int copy_success=svset_copy(ret->sets[i],sets[i]);
-			printf("Copying %ssuccessful\n",(copy_success)?"Un":"");
+			printf("Copying %ssuccessful: %d\n",(copy_success)?"Un":"",copy_success);
 			if(!ret->sets[i]){
 				for(int j=0;j<i;j++)
 					svset_destroy(ret->sets[j]);
