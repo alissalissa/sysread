@@ -73,8 +73,11 @@ lvnr_t *lvnr_fnew(FILE *handle){
 		bstream_t **pairs=bstream_split(*stream,0x09);
 		for(int i=0;i<n_of_pairs;i++){
 			bstream_t **pair=bstream_split(*pairs[i],'=');
-			keys[i]=*pair[0];
-			values[i]=*pair[1];
+			//FIXME This doesn't work like c++ operators, ya dolt.  You gotta copy the memory
+			memcpy(keys[i].stream,pair[0]->stream,pair[0]->length);
+			keys[i].length=pair[0]->length;
+			memcpy(values[i].stream,pair[1]->stream,pair[1]->length);
+			values[i].length=pair[1]->length;
 			bstream_destroy(pair[0]);
 			bstream_destroy(pair[1]);
 			free(pair);
