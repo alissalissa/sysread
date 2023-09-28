@@ -40,6 +40,7 @@ lvnr_t *lvnr_fnew(FILE *handle){
 		printf("Long variable name record corrupted in file...\n");
 		return NULL;
 	}
+	printf("rec_type=%d\n",rec_type);
 
 	int32_t subtype=0;
 	fread(&subtype,sizeof(int32_t),1,handle);
@@ -47,6 +48,7 @@ lvnr_t *lvnr_fnew(FILE *handle){
 		printf("Long variable name record corrupted in file...\n");
 		return NULL;
 	}
+	printf("subtype=%d\n",subtype);
 
 	int32_t n=0;
 	fread(&n,sizeof(int32_t),1,handle);
@@ -64,16 +66,18 @@ lvnr_t *lvnr_fnew(FILE *handle){
 		free(stream);
 		return NULL;
 	}
-	bstream_t *keys=(n>0)?(bstream_t*)calloc(n,sizeof(bstream_t)):NULL;
-	bstream_t *values=(n>0)?(bstream_t*)calloc(n,sizeof(bstream_t)):NULL;
-	int32_t n_of_pairs=0;
-	if(n>0){
+	
+	int32_t n_of_pairs=bstream_count(*stream,0x09)+1;
+	bstream_t *keys=(n>0)?(bstream_t*)calloc(n_of_pairs,sizeof(bstream_t)):NULL;
+	bstream_t *values=(n>0)?(bstream_t*)calloc(n_of_pairs,sizeof(bstream_t)):NULL;
+	if(n_of_pairs>0){
 		fread(stream->stream,sizeof(char),n,handle);
-		int32_t n_of_pairs=bstream_count(*stream,0x09);
+		printf("Read %d key-value pairs\n",n_of_pairs);
 		bstream_t **pairs=bstream_split(*stream,0x09);
 		for(int i=0;i<n_of_pairs;i++){
 			bstream_t **pair=bstream_split(*pairs[i],'=');
-			//FIXME This doesn't work like c++ operators, ya dolt.  You gotta copy the memory
+			keys[i].stream=(char*)calloc(pair[0]->length,sizeof(char));
+			values[i].stream=(char*)calloc(pair[1]->length,sizeof(char));
 			memcpy(keys[i].stream,pair[0]->stream,pair[0]->length);
 			keys[i].length=pair[0]->length;
 			memcpy(values[i].stream,pair[1]->stream,pair[1]->length);
@@ -81,6 +85,7 @@ lvnr_t *lvnr_fnew(FILE *handle){
 			bstream_destroy(pair[0]);
 			bstream_destroy(pair[1]);
 			free(pair);
+			printf("%s -> %s\n",bstream_cstr(keys[i]),bstream_cstr(values[i]));
 		}
 		for(int i=0;i<n_of_pairs;i++){
 			bstream_destroy(pairs[i]);

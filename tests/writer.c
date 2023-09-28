@@ -42,7 +42,7 @@ bool write_epir(const char *path){
 	const int32_t subtype=10;
 	const int32_t size=1;
 	const int32_t count=12;
-	FILE *handle=fopen(path,"w");
+	FILE *handle=fopen(path,"wb");
 	if(!handle) return false;
 	fwrite(&type,sizeof(int32_t),1,handle);
 	fwrite(&subtype,sizeof(int32_t),1,handle);
@@ -109,6 +109,48 @@ bool write_svset(const char *path){
 	fwrite(&byte_size,sizeof(int32_t),1,handle);
 	fwrite(&count,sizeof(int32_t),1,handle);
 	fwrite(substance,sizeof(char),count,handle);
+	if(ferror(handle)){
+		fclose(handle);
+		return false;
+	}
+	fclose(handle);
+	return true;
+}
+
+bool write_lvnr(const char *path){
+	FILE *handle=fopen(path,"wb");
+	if(!handle) return false;
+	int32_t rec_type=7;
+	int32_t subtype=13;
+	char pair_one[]="foo=bar";
+	char pair_two[]="foobar=test";
+	fwrite(&rec_type,sizeof(int32_t),1,handle);
+	if(ferror(handle)){
+		fclose(handle);
+		return false;
+	}
+	fwrite(&subtype,sizeof(int32_t),1,handle);
+	if(ferror(handle)){
+		fclose(handle);
+		return false;
+	}
+	int32_t count=19;
+	fwrite(&count,sizeof(int32_t),1,handle);
+	if(ferror(handle)){
+		fclose(handle);
+		return false;
+	}
+	fwrite(pair_one,sizeof(char),7,handle);
+	if(ferror(handle)){
+		fclose(handle);
+		return false;
+	}
+	fputc(0x09,handle);
+	if(ferror(handle)){
+		fclose(handle);
+		return false;
+	}
+	fwrite(pair_two,sizeof(char),11,handle);
 	if(ferror(handle)){
 		fclose(handle);
 		return false;
