@@ -11,17 +11,31 @@ lvnr_t *lvnr_new(int32_t rec_type,int32_t subtype,int32_t count,bstream_t *keys,
 	ret->rec_type=rec_type;
 	ret->subtype=subtype;
 	ret->count=count;
-	
+
 	if(ret->count>0){
-		ret->keys=bstream_cnew(keys);
-		ret->values=bstream_cnew(values);
-		if(!ret->keys || !ret->values){
-			if(ret->keys)
-				bstream_destroy(ret->keys);
-			if(ret->values)
-				bstream_destroy(ret->values);
-			free(ret);
-			return NULL;
+		ret->keys=(bstream_t*)calloc(ret->count,sizeof(bstream_t));
+		ret->values=(bstream_t*)calloc(ret->count,sizeof(bstream_t));
+		for(int i=0;i<ret->count;i++){
+			ret->keys[i].stream=(char*)calloc(keys[i].length,sizeof(char));
+			ret->values[i].stream=(char*)calloc(values[i].length,sizeof(char));
+			if(!ret->keys || !ret->values){
+				if(ret->keys){
+					for(int j=0;j<=i;j++)
+						free(ret->keys[i].stream);
+					free(ret->keys);
+				}
+				if(ret->values){
+					for(int j=0;j<=i;j++)
+						free(ret->values[i].stream);
+					free(ret->values);
+				}
+				free(ret);
+				return NULL;
+			}
+			memcpy(ret->keys[i].stream,keys[i].stream,keys[i].length);
+			ret->keys[i].length=keys[i].length;
+			memcpy(ret->values[i].stream,values[i].stream,values[i].length);
+			ret->values[i].length=values[i].length;	
 		}
 	}else{
 		ret->keys=NULL;
@@ -67,11 +81,14 @@ lvnr_t *lvnr_fnew(FILE *handle){
 		return NULL;
 	}
 	
-	int32_t n_of_pairs=bstream_count(*stream,0x09)+1;
-	bstream_t *keys=(n>0)?(bstream_t*)calloc(n_of_pairs,sizeof(bstream_t)):NULL;
-	bstream_t *values=(n>0)?(bstream_t*)calloc(n_of_pairs,sizeof(bstream_t)):NULL;
-	if(n_of_pairs>0){
+	bstream_t *keys=NULL;
+	bstream_t *values=NULL;
+	int n_of_pairs=0;
+	if(n>0){
 		fread(stream->stream,sizeof(char),n,handle);
+		n_of_pairs=bstream_count(*stream,0x09)+1;
+		keys=calloc(n_of_pairs,sizeof(bstream_t));
+		values=calloc(n_of_pairs,sizeof(bstream_t));
 		printf("Read %d key-value pairs\n",n_of_pairs);
 		bstream_t **pairs=bstream_split(*stream,0x09);
 		for(int i=0;i<n_of_pairs;i++){
@@ -87,10 +104,9 @@ lvnr_t *lvnr_fnew(FILE *handle){
 			free(pair);
 			printf("%s -> %s\n",bstream_cstr(keys[i]),bstream_cstr(values[i]));
 		}
-		for(int i=0;i<n_of_pairs;i++){
+		for(int i=0;i<n_of_pairs;i++)
 			bstream_destroy(pairs[i]);
-			free(pairs);
-		}
+		free(pairs);
 	}
 	lvnr_t *ret=lvnr_new(rec_type,subtype,n_of_pairs,keys,values);
 	for(int i=0;i<n_of_pairs;i++){
@@ -107,7 +123,7 @@ bool lvnr_destroy(lvnr_t *haystack){
 	if(!haystack || !haystack->keys || !haystack->values || !haystack->constructed)
 		return false;
 	haystack->constructed=false;
-	for(int i=0;i<haystack->count;i++){
+	for(int i=0;i<haystack->count;i++){ //FIXME there's a memory error / segfault somewhere in here
 		if(haystack->keys[i].stream){
 			free(haystack->keys[i].stream);
 			haystack->keys[i].length=-1;
@@ -118,5 +134,6 @@ bool lvnr_destroy(lvnr_t *haystack){
 		}
 	}
 	haystack->count=-1;
+	free(haystack);
 	return true;
 }
