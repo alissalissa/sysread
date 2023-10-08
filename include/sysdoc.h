@@ -13,6 +13,7 @@
 
 #define DOC_LINE_LENGTH 80
 
+//TODO Add debug printf statements and create a unit test
 typedef struct sysdoc{
 	int32_t record_type;
 	int32_t n_lines;
