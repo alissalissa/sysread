@@ -45,7 +45,6 @@ disppar_t *disppar_new(int32_t record_type,int32_t subtype,int32_t count,int32_t
 	return ret;
 }
 
-//TODO Add debug messages
 disppar_t *disppar_fnew(FILE *sys_handle){
 	if(!sys_handle)
 		return NULL;
@@ -57,19 +56,23 @@ disppar_t *disppar_fnew(FILE *sys_handle){
 	fread(&record_type,sizeof(int32_t),1,sys_handle);
 	if(record_type!=7 || ferror(sys_handle) || feof(sys_handle))
 		return NULL;
+	printf("record type = %d\n",record_type);
 
 	fread(&subtype,sizeof(int32_t),1,sys_handle);
 	if(subtype!=11 || ferror(sys_handle) || feof(sys_handle))
 		return NULL;
-
+	printf("subtype=%d\n",subtype);
+	
 	fread(&size_check,sizeof(int32_t),1,sys_handle);
 	if(size_check!=sizeof(int32_t) || ferror(sys_handle) || feof(sys_handle))
 		return NULL;
-	
+	printf("byte size=%d\n",size_check);
+
 	fread(&count,sizeof(int32_t),1,sys_handle);
 	if(count<0 || ferror(sys_handle) || feof(sys_handle))
 		return NULL;
-	
+	printf("%d records in stream\n",count);
+
 	int32_t *measures=(count>0)?((int32_t*)calloc(count,sizeof(int32_t))):NULL;
 	int32_t *widths=(count>0)?((int32_t*)calloc(count,sizeof(int32_t))):NULL;
 	int32_t *alignments=(count>0)?((int32_t*)calloc(count,sizeof(int32_t))):NULL;
@@ -84,6 +87,7 @@ disppar_t *disppar_fnew(FILE *sys_handle){
 				return NULL;
 			}
 			printf("Measures[%d]=%d\n",i,measures[i]);
+
 			fread(&(widths[i]),sizeof(int32_t),1,sys_handle);
 			if(ferror(sys_handle) || feof(sys_handle)){
 				free(measures);
@@ -92,6 +96,7 @@ disppar_t *disppar_fnew(FILE *sys_handle){
 				return NULL;
 			}
 			printf("widths[%d]=%d\n",i,widths[i]);
+
 			fread(&(alignments[i]),sizeof(int32_t),1,sys_handle);
 			if(!one_of(alignments[i],3,ALIGN_CENTER,ALIGN_LEFT,ALIGN_RIGHT) || ferror(sys_handle)){
 				free(measures);
