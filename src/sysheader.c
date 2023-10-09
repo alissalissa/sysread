@@ -2,28 +2,53 @@
 
 sysheader_t *sysheader_new(bstream_t *rt,bstream_t *pn,int32_t lc,int32_t ncs,int32_t comp,int32_t wi,int32_t nc,float b,bstream_t *cd,bstream_t *ct,bstream_t *fl,bstream_t *pd){
 
-	//FIXME add error handling for memory allocations
 	sysheader_t *ret=(sysheader_t*)malloc(sizeof(sysheader_t));
+	if(!ret)
+		return NULL;
 
 	//char* elements are NOT c strings, so we can't use strcpy.
 	//	Instead, we have to use memcpy
 	ret->rec_type=bstream_new_wl(REC_TYPE_SIZE);
+	if(!ret->rec_type){
+		free(ret);
+		return NULL;
+	}
 	memcpy(ret->rec_type->stream,rt->stream,REC_TYPE_SIZE);
 
 	//Similar process with the other char* variables
 	ret->prod_name=bstream_new_wl(PROD_NAME_SIZE);
+	if(!ret->prod_name){
+		free(ret);
+		return NULL;
+	}
 	memcpy(ret->prod_name->stream,pn->stream,PROD_NAME_SIZE);
 	
 	ret->creation_date=bstream_new_wl(CREATION_DATE_SIZE);
+	if(!ret->creation_date){
+		free(ret);
+		return NULL;
+	}
 	memcpy(ret->creation_date->stream,cd->stream,CREATION_DATE_SIZE);
 	
 	ret->creation_time=bstream_new_wl(CREATION_TIME_SIZE);
+	if(!ret->creation_time){
+		free(ret);
+		return NULL;
+	}
 	memcpy(ret->creation_time->stream,ct->stream,CREATION_TIME_SIZE);
 
 	ret->file_label=bstream_new_wl(FILE_LABEL_SIZE);
+	if(!ret->file_label){
+		free(ret);
+		return NULL;
+	}
 	memcpy(ret->file_label->stream,fl->stream,FILE_LABEL_SIZE);
 	
 	ret->padding=bstream_new_wl(PADDING_SIZE);
+	if(!ret->padding){
+		free(ret);
+		return NULL;
+	}
 	memcpy(ret->padding->stream,pd->stream,PADDING_SIZE);
 
 	//Then it's just a straight copy for the others
@@ -44,7 +69,13 @@ sysheader_t *sysheader_new(bstream_t *rt,bstream_t *pn,int32_t lc,int32_t ncs,in
 sysheader_t *sysheader_fnew(FILE *sys_file_handle){
 	//the actual allocation for the sysheader_t will occur within sysheader_new()
 	bstream_t *rec_type=bstream_new_wl(REC_TYPE_SIZE);
+	if(!rec_type)
+		return NULL;
 	bstream_t *prod_name=bstream_new_wl(PROD_NAME_SIZE);
+	if(!prod_name){
+		bstream_destroy(rec_type);
+		return NULL;
+	}
 	int32_t layout_code=-1;
 	int32_t nominal_case_size=-1;
 	int32_t compression=-1;
@@ -52,9 +83,25 @@ sysheader_t *sysheader_fnew(FILE *sys_file_handle){
 	int32_t ncases=-1;
 	float bias=-1.0;
 	bstream_t *creation_date=bstream_new_wl(CREATION_DATE_SIZE);
+	if(!creation_date){
+		bstream_mass_destroy(2,rec_type,prod_name);
+		return NULL;
+	}
 	bstream_t *creation_time=bstream_new_wl(CREATION_TIME_SIZE);
+	if(!creation_time){
+		bstream_mass_destroy(3,rec_type,prod_name,creation_date);
+		return NULL;
+	}
 	bstream_t *file_label=bstream_new_wl(FILE_LABEL_SIZE);
+	if(!file_label){
+		bstream_mass_destroy(4,rec_type,prod_name,creation_date,creation_time);
+		return NULL;
+	}
 	bstream_t *padding=bstream_new_wl(PADDING_SIZE);
+	if(!padding){
+		bstream_mass_destroy(5,rec_type,prod_name,creation_date,creation_time,file_label);
+		return NULL;
+	}
 
 	//file operations
 	fread(rec_type->stream,sizeof(char),REC_TYPE_SIZE,sys_file_handle);
@@ -141,6 +188,8 @@ sysheader_t *sysheader_fnew(FILE *sys_file_handle){
 }
 
 bool sysheader_destroy(sysheader_t *haystack){
+	if(!haystack)
+		return false;
 	if(!haystack->constructed)
 		return false;
 	bstream_mass_destroy(6,haystack->rec_type,haystack->prod_name,haystack->creation_date,haystack->creation_time,haystack->file_label,haystack->padding);

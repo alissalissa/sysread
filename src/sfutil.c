@@ -28,12 +28,14 @@ bool verify_time_format(char *sample){
 	return true;
 }
 
-char *subset(char *haystack,int start,int length){
+/*char *subset(char *haystack,int start,int length){
 	char *ret=calloc(length,sizeof(char));
+	if(!ret)
+		return NULL;
 	for(int index=start;index<(start+length);index++)
 		ret[index-start]=haystack[index];
 	return ret;
-}
+}*/
 
 /*int *split(char **dest,char *haystack,int haystack_length,char delimiter){
 	int count=0;

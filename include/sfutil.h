@@ -17,7 +17,7 @@ bool verify_date_format(char*);
 bool verify_time_format(char*);
 
 //manipulates a non-null-terminated byte string
-char *subset(char*,int,int);
+//char *subset(char*,int,int);
 //first element of return value is guaranteed to be present
 //  it is the number of elements.
 //  Remaining elements are the lengths of the names,

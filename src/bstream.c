@@ -42,9 +42,12 @@ bool bstream_destroy(bstream_t *haystack){
 bool bstream_mass_destroy(int n,...){
 	va_list args;
 	va_start(args,n);
-	for(int i=0;i<n;i++)
-		if(!bstream_destroy(va_arg(args,bstream_t*)))
-			return false;
+	for(int i=0;i<n;i++){
+		bstream_t *ref=(bstream_t*)va_arg(args,bstream_t*);
+		if(ref)
+			if(!bstream_destroy(ref))
+				return false;
+	}
 	va_end(args);
 	return true;
 }
