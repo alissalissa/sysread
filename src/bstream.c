@@ -9,6 +9,13 @@ bstream_t *bstream_new(void){
     return ret;
 }
 
+bstream_t *bstream_new_wl(size_t s){
+	bstream_t *ret=(bstream_t*)malloc(sizeof(bstream_t));
+	ret->length=s;
+	ret->stream=(char*)calloc(s,sizeof(char));
+	return ret;
+}
+
 bstream_t *bstream_char_new(char *haystack,int32_t length){
 	bstream_t *ret=bstream_new();
 	ret->length=length;
@@ -30,6 +37,16 @@ bool bstream_destroy(bstream_t *haystack){
     if(!haystack) return false;
     free(haystack);
     return true;
+}
+
+bool bstream_mass_destroy(int n,...){
+	va_list args;
+	va_start(args,n);
+	for(int i=0;i<n;i++)
+		if(!bstream_destroy(va_arg(args,bstream_t*)))
+			return false;
+	va_end(args);
+	return true;
 }
 
 bstream_t *bstream_push(bstream_t *haystack,char byte){

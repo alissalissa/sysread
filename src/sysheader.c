@@ -1,29 +1,30 @@
 #include "sysheader.h"
 
-sysheader_t *sysheader_new(char *rt,char *pn,int32_t lc,int32_t ncs,int32_t comp,int32_t wi,int32_t nc,float b,char *cd,char *ct,char *fl,char *pd){
+sysheader_t *sysheader_new(bstream_t *rt,bstream_t *pn,int32_t lc,int32_t ncs,int32_t comp,int32_t wi,int32_t nc,float b,bstream_t *cd,bstream_t *ct,bstream_t *fl,bstream_t *pd){
 
+	//FIXME add error handling for memory allocations
 	sysheader_t *ret=(sysheader_t*)malloc(sizeof(sysheader_t));
 
 	//char* elements are NOT c strings, so we can't use strcpy.
 	//	Instead, we have to use memcpy
-	ret->rec_type=(char*)calloc(REC_TYPE_SIZE,sizeof(char));
-	memcpy(ret->rec_type,rt,REC_TYPE_SIZE);
+	ret->rec_type=bstream_new_wl(REC_TYPE_SIZE);
+	memcpy(ret->rec_type->stream,rt->stream,REC_TYPE_SIZE);
 
 	//Similar process with the other char* variables
-	ret->prod_name=(char*)calloc(PROD_NAME_SIZE,sizeof(char));
-	memcpy(ret->prod_name,pn,PROD_NAME_SIZE);
+	ret->prod_name=bstream_new_wl(PROD_NAME_SIZE);
+	memcpy(ret->prod_name->stream,pn->stream,PROD_NAME_SIZE);
 	
-	ret->creation_date=(char*)calloc(CREATION_DATE_SIZE,sizeof(char));
-	memcpy(ret->creation_date,cd,CREATION_DATE_SIZE);
+	ret->creation_date=bstream_new_wl(CREATION_DATE_SIZE);
+	memcpy(ret->creation_date->stream,cd->stream,CREATION_DATE_SIZE);
 	
-	ret->creation_time=(char*)calloc(CREATION_TIME_SIZE,sizeof(char));
-	memcpy(ret->creation_time,ct,CREATION_TIME_SIZE);
+	ret->creation_time=bstream_new_wl(CREATION_TIME_SIZE);
+	memcpy(ret->creation_time->stream,ct->stream,CREATION_TIME_SIZE);
 
-	ret->file_label=(char*)calloc(FILE_LABEL_SIZE,sizeof(char));
-	memcpy(ret->file_label,fl,FILE_LABEL_SIZE);
+	ret->file_label=bstream_new_wl(FILE_LABEL_SIZE);
+	memcpy(ret->file_label->stream,fl->stream,FILE_LABEL_SIZE);
 	
-	ret->padding=(char*)calloc(PADDING_SIZE,sizeof(char));
-	memcpy(ret->padding,pd,PADDING_SIZE);
+	ret->padding=bstream_new_wl(PADDING_SIZE);
+	memcpy(ret->padding->stream,pd->stream,PADDING_SIZE);
 
 	//Then it's just a straight copy for the others
 	ret->layout_code=lc;
@@ -42,82 +43,65 @@ sysheader_t *sysheader_new(char *rt,char *pn,int32_t lc,int32_t ncs,int32_t comp
 
 sysheader_t *sysheader_fnew(FILE *sys_file_handle){
 	//the actual allocation for the sysheader_t will occur within sysheader_new()
-	char *rec_type=calloc(REC_TYPE_SIZE,sizeof(char));
-	char *prod_name=calloc(PROD_NAME_SIZE,sizeof(char));
+	bstream_t *rec_type=bstream_new_wl(REC_TYPE_SIZE);
+	bstream_t *prod_name=bstream_new_wl(PROD_NAME_SIZE);
 	int32_t layout_code=-1;
 	int32_t nominal_case_size=-1;
 	int32_t compression=-1;
 	int32_t weight_index=-1;
 	int32_t ncases=-1;
 	float bias=-1.0;
-	char *creation_date=calloc(CREATION_DATE_SIZE,sizeof(char));
-	char *creation_time=calloc(CREATION_TIME_SIZE,sizeof(char));
-	char *file_label=calloc(FILE_LABEL_SIZE,sizeof(char));
-	char *padding=calloc(PADDING_SIZE,sizeof(char));
+	bstream_t *creation_date=bstream_new_wl(CREATION_DATE_SIZE);
+	bstream_t *creation_time=bstream_new_wl(CREATION_TIME_SIZE);
+	bstream_t *file_label=bstream_new_wl(FILE_LABEL_SIZE);
+	bstream_t *padding=bstream_new_wl(PADDING_SIZE);
 
 	//file operations
-	for(int i=0;i<REC_TYPE_SIZE;i++)
-		rec_type[i]=(char)fgetc(sys_file_handle);
-	if(ferror(sys_file_handle) || feof(sys_file_handle)){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
-		return NULL;
-	}
-	if(rec_type[0]!='$' || rec_type[1]!='F' || rec_type[2]!='L'){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
-		return NULL;
-	}
-	if(rec_type[3]!='2' && rec_type[3]!='3'){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+	fread(rec_type->stream,sizeof(char),REC_TYPE_SIZE,sys_file_handle);
+	if(ferror(sys_file_handle) || feof(sys_file_handle) || strcmp(bstream_cstr(bstream_subset(*rec_type,0,3)),"$FL")){
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
 	
-	for(int i=0;i<PROD_NAME_SIZE;i++)
-		prod_name[i]=(char)fgetc(sys_file_handle);
-	if(ferror(sys_file_handle) || feof(sys_file_handle)){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+	fread(prod_name->stream,sizeof(char),PROD_NAME_SIZE,sys_file_handle);
+	if(ferror(sys_file_handle) || feof(sys_file_handle) || strcmp(bstream_cstr(bstream_subset(*prod_name,0,19)),"@(#) SPSS DATA FILE")){
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
-	}
-	char *prod_name_test="@(#) SPSS DATA FILE";
-	for(int i=0;i<PROD_NAME_CHECK_SIZE;i++){
-		if(prod_name[i]!=prod_name_test[i]){
-			mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
-			return NULL;
-		}
 	}
 
 	fread(&layout_code,sizeof(int32_t),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle) || layout_code!=2){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
 
 	fread(&nominal_case_size,sizeof(int32_t),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle)){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
 
 	fread(&compression,sizeof(int32_t),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle) || (compression<0 || compression>2)){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
 
 	fread(&weight_index,sizeof(int32_t),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle) || weight_index<0){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
 
 	fread(&ncases,sizeof(int32_t),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle) || ncases<-1){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
 
 	fread(&bias,sizeof(float),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle)){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
 	if(bias!=100.0){
@@ -125,37 +109,33 @@ sysheader_t *sysheader_fnew(FILE *sys_file_handle){
 		return NULL;
 	}
 
-	for(int i=0;i<CREATION_DATE_SIZE;i++)
-		creation_date[i]=fgetc(sys_file_handle);
-	if(ferror(sys_file_handle) || feof(sys_file_handle) || !verify_date_format(creation_date)){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+	fread(creation_date->stream,sizeof(char),CREATION_DATE_SIZE,sys_file_handle);
+	if(ferror(sys_file_handle) || feof(sys_file_handle) || !verify_date_format(bstream_cstr(*creation_date))){
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
 
-	for(int i=0;i<CREATION_TIME_SIZE;i++)
-		creation_time[i]=fgetc(sys_file_handle);
-	if(ferror(sys_file_handle) || feof(sys_file_handle) || !verify_time_format(creation_time)){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+	fread(creation_time->stream,sizeof(char),CREATION_TIME_SIZE,sys_file_handle);
+	if(ferror(sys_file_handle) || feof(sys_file_handle) || !verify_time_format(bstream_cstr(*creation_time))){
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
 
-	for(int i=0;i<FILE_LABEL_SIZE;i++)
-		file_label[i]=fgetc(sys_file_handle);
+	fread(file_label->stream,sizeof(char),FILE_LABEL_SIZE,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle)){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
 
-	for(int i=0;i<PADDING_SIZE;i++)
-		padding[i]=fgetc(sys_file_handle);
+	fread(padding->stream,sizeof(char),PADDING_SIZE,sys_file_handle);
 	if(ferror(sys_file_handle)){
-		mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
 
 	//There have been no read or EOF errors, so construct the type
 	sysheader_t *ret=sysheader_new(rec_type,prod_name,layout_code,nominal_case_size,compression,weight_index,ncases,bias,creation_date,creation_time,file_label,padding);
-	mass_free(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+	bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 	return ret;
 
 }
@@ -163,7 +143,7 @@ sysheader_t *sysheader_fnew(FILE *sys_file_handle){
 bool sysheader_destroy(sysheader_t *haystack){
 	if(!haystack->constructed)
 		return false;
-	mass_free(6,haystack->rec_type,haystack->prod_name,haystack->creation_date,haystack->creation_time,haystack->file_label,haystack->padding);
+	bstream_mass_destroy(6,haystack->rec_type,haystack->prod_name,haystack->creation_date,haystack->creation_time,haystack->file_label,haystack->padding);
 	free(haystack);
 	return true;
 }

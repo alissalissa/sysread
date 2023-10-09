@@ -3,6 +3,7 @@
 #ifndef __BSTREAM_H__
 #define __BSTREAM_H__
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -15,10 +16,12 @@ typedef struct BStream {
 }bstream_t;
 
 //Factory
-bstream_t *bstream_new(void);
+bstream_t *bstream_new();
+bstream_t *bstream_new_wl(size_t);
 bstream_t *bstream_char_new(char*,int32_t); //Constructs based on a string
 bstream_t *bstream_cnew(bstream_t*);
 bool bstream_destroy(bstream_t*);
+bool bstream_mass_destroy(int,...);
 
 //Manipulate
 bstream_t *bstream_push(bstream_t*,char);

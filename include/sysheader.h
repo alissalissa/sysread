@@ -15,28 +15,30 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
+#include "bstream.h"
 #include "sfutil.h"
 
 //TODO refactor to use bstreams
 typedef struct sysheader {
-	char *rec_type;
-	char *prod_name;
+	bstream_t *rec_type;
+	bstream_t *prod_name;
 	int32_t layout_code;
 	int32_t nominal_case_size;
 	int32_t	compression;
 	int32_t weight_index;
 	int32_t ncases;
 	float bias;
-	char *creation_date;
-	char *creation_time;
-	char *file_label;
-	char *padding;
+	bstream_t *creation_date;
+	bstream_t *creation_time;
+	bstream_t *file_label;
+	bstream_t *padding;
 	bool constructed;
 }sysheader_t;
 
 //Construction/destruction
-sysheader_t *sysheader_new(char*,char*,int32_t,int32_t,int32_t,int32_t,int32_t,float,char*,char*,char*,char*); //only intended for internal use with sysheader_fnew
+sysheader_t *sysheader_new(bstream_t*,bstream_t*,int32_t,int32_t,int32_t,int32_t,int32_t,float,bstream_t*,bstream_t*,bstream_t*,bstream_t*); //only intended for internal use with sysheader_fnew
 //Generates a sysheader_t by reading from a file handle
 sysheader_t *sysheader_fnew(FILE*);
 bool sysheader_destroy(sysheader_t*);
