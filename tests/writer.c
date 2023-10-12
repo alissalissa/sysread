@@ -158,3 +158,51 @@ bool write_lvnr(const char *path){
 	fclose(handle);
 	return true;
 }
+
+//TODO add writing for a header test sysfile
+bool write_header(const char *path){
+	assert(path);
+	bstream_t *rec_type=bstream_new_wl(REC_TYPE_SIZE);
+	bstream_t *prod_name=bstream_new_wl(PROD_NAME_SIZE);
+	bstream_t *creation_date=bstream_new_wl(CREATION_DATE_SIZE);
+	bstream_t *creation_time=bstream_new_wl(CREATION_TIME_SIZE);
+	bstream_t *file_label=bstream_new_wl(FILE_LABEL_SIZE);
+	bstream_t *padding=bstream_new_wl(PADDING_SIZE);
+	strcpy(rec_type->stream,"$FL2\0");
+	strcpy(prod_name->stream,"@(#) SPSS DATA FILETESTTESTTESTTEST\0");
+	for(int i=35;i<PROD_NAME_SIZE;i++)
+		prod_name->stream[i]=' ';
+	int32_t layout_code=2;
+	int32_t nominal_case_size=50;
+	int32_t compression=0;
+	int32_t weight_index=0;
+	int32_t ncases=-1;
+	float bias=100.0;
+	strcpy(creation_date->stream,"01 jan 77\0");
+	strcpy(creation_time->stream,"00:00:00\0");
+	strcpy(file_label->stream,"Test file\0");
+	for(int i=9;i<FILE_LABEL_SIZE;i++)
+		file_label->stream[i]=' ';
+	for(int i=0;i<PADDING_SIZE;i++)
+		padding->stream[i]=0x00;
+
+	FILE *output=fopen(path,"wb");
+	if(!output){
+		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
+		return false;
+	}
+	fwrite(rec_type->stream,sizeof(char),REC_TYPE_SIZE,output);
+	fwrite(prod_name->stream,sizeof(char),PROD_NAME_SIZE,output);
+	fwrite(&layout_code,sizeof(int32_t),1,output);
+	fwrite(&nominal_case_size,sizeof(int32_t),1,output);
+	fwrite(&compression,sizeof(int32_t),1,output);
+	fwrite(&weight_index,sizeof(int32_t),1,output);
+	fwrite(&ncases,sizeof(int32_t),1,output);
+	fwrite(&bias,sizeof(float),1,output);
+	fwrite(creation_date->stream,sizeof(char),CREATION_DATE_SIZE,output);
+	fwrite(creation_time->stream,sizeof(char),CREATION_TIME_SIZE,output);
+	fwrite(file_label->stream,sizeof(char),FILE_LABEL_SIZE,output);
+	fwrite(padding->stream,sizeof(char),PADDING_SIZE,output);
+	fclose(output);
+	return true;
+}

@@ -123,7 +123,7 @@ bool lvnr_destroy(lvnr_t *haystack){
 	if(!haystack || !haystack->keys || !haystack->values || !haystack->constructed)
 		return false;
 	haystack->constructed=false;
-	for(int i=0;i<haystack->count;i++){ //FIXME there's a memory error / segfault somewhere in here
+	for(int i=0;i<haystack->count;i++){
 		if(haystack->keys[i].stream){
 			free(haystack->keys[i].stream);
 			haystack->keys[i].length=-1;
