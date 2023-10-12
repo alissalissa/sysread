@@ -109,42 +109,49 @@ sysheader_t *sysheader_fnew(FILE *sys_file_handle){
 		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
-	
+	printf("rec type = %s\n",bstream_cstr(*rec_type));
+
 	fread(prod_name->stream,sizeof(char),PROD_NAME_SIZE,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle) || strcmp(bstream_cstr(bstream_subset(*prod_name,0,19)),"@(#) SPSS DATA FILE")){
 		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
+	printf("prod name = %s\n",bstream_cstr(*prod_name));
 
 	fread(&layout_code,sizeof(int32_t),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle) || layout_code!=2){
 		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
+	printf("layout code = %d\n",layout_code);
 
 	fread(&nominal_case_size,sizeof(int32_t),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle)){
 		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
+	printf("Nominal case size = %d\n",nominal_case_size);
 
 	fread(&compression,sizeof(int32_t),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle) || (compression<0 || compression>2)){
 		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
+	printf("Compression = %d\n",compression);
 
 	fread(&weight_index,sizeof(int32_t),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle) || weight_index<0){
 		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
+	printf("weight index = %d\n",weight_index);
 
 	fread(&ncases,sizeof(int32_t),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle) || ncases<-1){
 		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
+	printf("n cases = %d\n",ncases);
 
 	fread(&bias,sizeof(float),1,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle)){
@@ -155,24 +162,28 @@ sysheader_t *sysheader_fnew(FILE *sys_file_handle){
 		printf("Either the file is of different endianness,\nor there's a read error.");
 		return NULL;
 	}
+	printf("bias = %f\n",bias);
 
 	fread(creation_date->stream,sizeof(char),CREATION_DATE_SIZE,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle) || !verify_date_format(bstream_cstr(*creation_date))){
 		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
+	printf("Creation date = %s\n",bstream_cstr(*creation_date));
 
 	fread(creation_time->stream,sizeof(char),CREATION_TIME_SIZE,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle) || !verify_time_format(bstream_cstr(*creation_time))){
 		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
+	printf("Creation time = %s\n",bstream_cstr(*creation_time));
 
 	fread(file_label->stream,sizeof(char),FILE_LABEL_SIZE,sys_file_handle);
 	if(ferror(sys_file_handle) || feof(sys_file_handle)){
 		bstream_mass_destroy(6,rec_type,prod_name,creation_date,creation_time,file_label,padding);
 		return NULL;
 	}
+	printf("File label = %s\n",bstream_cstr(*file_label));
 
 	fread(padding->stream,sizeof(char),PADDING_SIZE,sys_file_handle);
 	if(ferror(sys_file_handle)){

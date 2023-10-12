@@ -178,7 +178,7 @@ bool write_header(const char *path){
 	int32_t weight_index=0;
 	int32_t ncases=-1;
 	float bias=100.0;
-	strcpy(creation_date->stream,"01 jan 77\0");
+	strcpy(creation_date->stream,"01 Jan 77\0");
 	strcpy(creation_time->stream,"00:00:00\0");
 	strcpy(file_label->stream,"Test file\0");
 	for(int i=9;i<FILE_LABEL_SIZE;i++)
