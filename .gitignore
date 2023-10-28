@@ -38,3 +38,4 @@ tests/epir_test
 tests/disppar_test
 tests/svtest
 tests/lvnr_test
+.vscode
