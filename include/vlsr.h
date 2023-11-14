@@ -2,6 +2,8 @@
 #ifndef __SYS_VLSR_H__
 #define __SYS_VLSR_H__
 
+//TODO unit tests
+
 #define VLSR_RECORD_TYPE 7
 #define VLSR_SUBTYPE 14
 
@@ -13,7 +15,7 @@
 
 #include "bstream.h"
 
-typedef struct SYSVLSR {
+typedef struct sysvlsr {
 	int32_t record_type;
 	int32_t subtype;
 	int32_t n;

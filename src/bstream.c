@@ -112,6 +112,26 @@ bstream_t **bstream_split(bstream_t haystack,char delimiter){
     return dest;
 }
 
+//TODO insert error checking
+bstream_t **bstream_split_str(bstream_t haystack,bstream_t delimiter){
+	int count=bstream_count_str(haystack,delimiter);
+	bstream_t **ret=(bstream_t**)calloc(count+1,sizeof(bstream_t*));
+	bstream_t *modable=bstream_cnew(&haystack);
+	for(int i=0;i<count;i++){
+		ret[i]->length=bstream_find_str(*modable,delimiter);
+		ret[i]->stream=(char*)calloc(ret[i]->length,sizeof(char));
+		bstream_t snippet=bstream_subset(*modable,0,ret[i]->length);
+		memcpy(ret[i]->stream,snippet.stream,snippet.length);
+		bstream_t temp=bstream_subset(*modable,snippet.length+delimiter.length,-1);
+		free(modable);
+		modable=bstream_cnew(&temp);
+	}
+	ret[count]->stream=calloc(modable->length,sizeof(char));
+	ret[count]->length=modable->length;
+	memcpy(ret[count]->stream,modable->stream,ret[count]->length);
+	return ret;
+}
+
 bstream_t bstream_subset(bstream_t haystack,int start,int length){
     bstream_t ret;
 	if(length==0){
@@ -133,12 +153,28 @@ int bstream_find(bstream_t haystack,char delimiter){
     return -1;
 }
 
+int bstream_find_str(bstream_t haystack,bstream_t delimiter){
+	for(int i=0;i<(haystack.length-delimiter.length);i++)
+		if(bstream_cmp(bstream_subset(haystack,0,delimiter.length),delimiter))
+			return i;
+	return -1;
+}
+
 int bstream_count(bstream_t haystack,char delimiter){
     int ret=0;
     for(int i=0;i<haystack.length;i++)
         if(haystack.stream[i]==delimiter)
             ret++;
     return ret; 
+}
+
+int bstream_count_str(bstream_t haystack,bstream_t delimiter){
+	int ret=0;
+	for(int i=0;i<(haystack.length-delimiter.length);i++){
+		if(bstream_cmp(bstream_subset(haystack,i,delimiter.length),delimiter))
+			ret++;
+	}
+	return ret;
 }
 
 //Converters
