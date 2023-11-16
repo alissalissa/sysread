@@ -27,6 +27,7 @@ vlsr_t *vlsr_new(int32_t record_type,int32_t subtype,int32_t n,bstream_t *keys,b
 	return ret;
 }
 
+//TODO add memory allocation error handling
 vlsr_t *vlsr_fnew(FILE *handle){
 	if(!handle)
 		return NULL;
@@ -72,8 +73,31 @@ vlsr_t *vlsr_fnew(FILE *handle){
 	bstream_t *keys=(bstream_t*)calloc(number_of_pairs,sizeof(bstream_t));
 	bstream_t *values=(bstream_t*)calloc(number_of_pairs,sizeof(bstream_t));
 	for(int i=0;i<number_of_pairs;i++){
-		
+		int split_point=bstream_find(*(pairs[i]),'=');
+		bstream_t temp_key=bstream_subset(*(pairs[i]),0,split_point);
+		bstream_t temp_value=bstream_subset(*(pairs[i]),split_point+1,-1);
+		keys[i].stream=calloc(temp_key.length,sizeof(char));
+		values[i].stream=calloc(temp_value.length,sizeof(char));
+		keys[i].length=temp_key.length;
+		values[i].length=temp_value.length;
+		memcpy(keys[i].stream,temp_key.stream,temp_key.length);
+		memcpy(values[i].stream,temp_value.stream,temp_value.length);
 	}
+	vlsr_t *ret=vlsr_new(record_type,subtype,number_of_pairs,keys,values);
+	
+	//Cleanup
+	bstream_destroy(vlsr_stream);
+	bstream_destroy(delimiter);
+	for(int i=0;i<number_of_pairs;i++){
+		free(keys[i].stream);
+		free(values[i].stream);
+		bstream_destroy(pairs[i]);
+	}
+	free(keys);
+	free(values);
+	free(pairs);
+	
+	return ret;
 }
 
 bool vlsr_destroy(vlsr_t *haystack){

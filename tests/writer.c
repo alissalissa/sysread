@@ -206,3 +206,26 @@ bool write_header(const char *path){
 	fclose(output);
 	return true;
 }
+
+bool write_vlsr(const char *path){
+	assert(path);
+	int32_t record_type=(int32_t)VLSR_RECORD_TYPE;
+	int32_t subtype=(int32_t)VLSR_SUBTYPE;
+	int32_t byte_size=1;
+	const char *half_one="foo=bar";
+	const char *half_two="foobar=fooestbar";
+	int32_t count=25;
+	FILE *handle=fopen(path,"wb");
+	if(!handle)
+		return false;
+	fwrite(&record_type,sizeof(int32_t),1,handle);
+	fwrite(&subtype,sizeof(int32_t),1,handle);
+	fwrite(&byte_size,sizeof(int32_t),1,handle);
+	fwrite(&count,sizeof(int32_t),1,handle);
+	fwrite(half_one,sizeof(char),7,handle);
+	fputc(0x00,handle);
+	fputc(0x09,handle);
+	fwrite(half_two,sizeof(char),16,handle);
+	fclose(handle);
+	return true;
+}
