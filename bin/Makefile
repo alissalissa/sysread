@@ -4,7 +4,7 @@ default: compile
 #compile
 compile: vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o sysiinfo.o sysfinfo.o svset.o
 	$(info Linking shared library...)
-	gcc -o libsysfile.so -g lvnr.o disppar.o epir.o bstream.o mrset.o sysiinfo.o sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o sysfinfo.o svset.o -shared -fPIC
+	gcc -o libsysfile.so -g vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sysiinfo.o sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o sysfinfo.o svset.o -shared -fPIC
 
 sfutil.o:
 	$(info Compiling sfutil.c...)

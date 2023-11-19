@@ -61,12 +61,24 @@ vlsr_t *vlsr_fnew(FILE *handle){
 		printf("Corrupted very long string record!\n");
 		return NULL;
 	}
+	printf("%d bytes in the stream\n",byte_count);
 	bstream_t *vlsr_stream=bstream_new_wl(byte_count);
-	fread(vlsr_stream->stream,sizeof(char),vlsr_stream->length,handle);
+	//FIXME for some reason the whole file isn't being read in.
+	size_t read_count=fread(vlsr_stream->stream,sizeof(char),vlsr_stream->length,handle);
+	printf("%d bytes read in by fread\n",read_count);
+	if(ferror(handle)){
+		printf("File corrupted!\n");
+		return NULL;
+	}
+	if(feof(handle)){
+		printf("End of file reached!\n");
+		return NULL;
+	}
+	printf("Whole stream:\n\n%s\n\n",bstream_cstr(*vlsr_stream));
 
 	bstream_t *delimiter=bstream_new_wl(2);
-	delimiter->stream[0]=0x00;
-	delimiter->stream[1]=0x09;
+	delimiter->stream[0]=(char)0x00;
+	delimiter->stream[1]=(char)0x09;
 
 	int number_of_pairs=bstream_count_str(*vlsr_stream,*delimiter)+1;
 	bstream_t **pairs=bstream_split_str(*vlsr_stream,*delimiter);

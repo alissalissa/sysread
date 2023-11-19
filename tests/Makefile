@@ -15,6 +15,7 @@ compile:
 	gcc -g -o svtest -L../bin -Wl,-rpath,../bin -lsysfile svtest.o writer.o
 	gcc -g -o lvnr_test -L../bin -Wl,-rpath,../bin -lsysfile writer.o lvnr_test.o
 	gcc -g -o header_test -L../bin -Wl,-rpath,../bin -lsysfile -I../include writer.o header_test.c
+	gcc -g -o vlsr_test -L../bin -Wl,-rpath,../bin -lsysfile -I../include writer.o vlsr_test.c
 
 clean:
 	rm *.o *.sys epir_test mrset_test disppar_test svtest
