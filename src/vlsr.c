@@ -63,7 +63,6 @@ vlsr_t *vlsr_fnew(FILE *handle){
 	}
 	printf("%d bytes in the stream\n",byte_count);
 	bstream_t *vlsr_stream=bstream_new_wl(byte_count);
-	//FIXME for some reason the whole file isn't being read in.
 	size_t read_count=fread(vlsr_stream->stream,sizeof(char),vlsr_stream->length,handle);
 	printf("%d bytes read in by fread\n",read_count);
 	if(ferror(handle)){
@@ -95,6 +94,7 @@ vlsr_t *vlsr_fnew(FILE *handle){
 		values[i].length=temp_value.length;
 		memcpy(keys[i].stream,temp_key.stream,temp_key.length);
 		memcpy(values[i].stream,temp_value.stream,temp_value.length);
+		printf("key = %s\t\tvalue = %s\n",bstream_cstr(keys[i]),bstream_cstr(values[i]));
 	}
 	vlsr_t *ret=vlsr_new(record_type,subtype,number_of_pairs,keys,values);
 	
