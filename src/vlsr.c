@@ -74,6 +74,7 @@ vlsr_t *vlsr_fnew(FILE *handle){
 		printf("End of file reached!\n");
 		return NULL;
 	}
+	//FIXME The whole stream isn't being printed because it includes a \0
 	printf("Whole stream:\n\n%s\n\n",bstream_cstr(*vlsr_stream));
 
 	bstream_t *delimiter=bstream_new_wl(2);

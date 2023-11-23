@@ -116,9 +116,15 @@ bstream_t **bstream_split(bstream_t haystack,char delimiter){
 bstream_t **bstream_split_str(bstream_t haystack,bstream_t delimiter){
 	int count=bstream_count_str(haystack,delimiter);
 	bstream_t **ret=(bstream_t**)calloc(count+1,sizeof(bstream_t*));
+	if(!ret){
+		printf("error allocating memory in bstream_split_str....\n");
+		return NULL;
+	}
 	bstream_t *modable=bstream_cnew(&haystack);
 	for(int i=0;i<count;i++){
-		ret[i]->length=bstream_find_str(*modable,delimiter);
+		int point=bstream_find_str(*modable,delimiter);
+		ret[i]=bstream_new_wl(point);
+		ret[i]->length=point;
 		ret[i]->stream=(char*)calloc(ret[i]->length,sizeof(char));
 		bstream_t snippet=bstream_subset(*modable,0,ret[i]->length);
 		memcpy(ret[i]->stream,snippet.stream,snippet.length);
@@ -126,6 +132,7 @@ bstream_t **bstream_split_str(bstream_t haystack,bstream_t delimiter){
 		free(modable);
 		modable=bstream_cnew(&temp);
 	}
+	ret[count]=bstream_new_wl(modable->length);
 	ret[count]->stream=calloc(modable->length,sizeof(char));
 	ret[count]->length=modable->length;
 	memcpy(ret[count]->stream,modable->stream,ret[count]->length);
@@ -155,7 +162,7 @@ int bstream_find(bstream_t haystack,char delimiter){
 
 int bstream_find_str(bstream_t haystack,bstream_t delimiter){
 	for(int i=0;i<(haystack.length-delimiter.length);i++)
-		if(bstream_cmp(bstream_subset(haystack,0,delimiter.length),delimiter))
+		if(bstream_cmp(bstream_subset(haystack,i,delimiter.length),delimiter))
 			return i;
 	return -1;
 }
