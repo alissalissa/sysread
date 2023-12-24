@@ -61,3 +61,17 @@ lsvlabel_list_t *lsvlabel_list_new(int32_t record_type,int32_t subtype,int32_t n
 	ret->constructed=true;
 	return ret;
 }
+
+bool lsvlabel_list_destroy(lsvlabel_list_t *haystack){
+	if(!haystack)
+		return false;
+	if(!haystack->constructed)
+		return false;
+	haystack->constructed=false;
+	for(int i=0;i<haystack->n_labels;i++)
+		if(!lsvlabel_destroy(haystack->labels[i]))
+			return false;
+	free(haystack->labels);
+	free(haystack);
+	return true;
+}
