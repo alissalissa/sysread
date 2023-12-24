@@ -29,9 +29,9 @@ bool lsvlabel_destroy(lsvlabel_t *haystack){
 		return false;
 	if(!bstream_destroy(haystack->value))
 		return false;
+	haystack->constructed=false;
 	if(!bstream_destroy(haystack->label))
 		return false;
-	haystack->constructed=false;
 	free(haystack);
 	return true;
 }
