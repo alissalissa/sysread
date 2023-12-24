@@ -2,9 +2,15 @@
 default: compile
 
 #compile
+<<<<<<< Updated upstream
 compile: lsvl.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o sysiinfo.o sysfinfo.o svset.o
 	$(info Linking shared library...)
 	gcc -g -o libsysfile.so lsvl.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sysiinfo.o sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o sysfinfo.o svset.o -shared -fPIC
+=======
+compile: lsvlabel.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o sysiinfo.o sysfinfo.o svset.o
+	$(info Linking shared library...)
+	gcc -o libsysfile.so -g lsvlabel.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sysiinfo.o sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o sysfinfo.o svset.o -shared -fPIC
+>>>>>>> Stashed changes
 
 sfutil.o:
 	$(info Compiling sfutil.c...)
@@ -66,9 +72,16 @@ syschare.o:
 	$(info Compiling syschare.c....)
 	gcc -g -c -o syschare.o -I../include ../src/syschare.c -fPIC
 
+<<<<<<< Updated upstream
 lsvl.o:
 	$(info Compiling lsvl.c.....)
 	gcc -g -c -o lsvl.o -I../include ../src/lsvl.c
+=======
+lsvlabel.o:
+	$(info Compiling lsvlabel.c....)
+	gcc -g -c -o lsvlabel.o -I../include ../src/lsvlabel.c -fPIC
+
+>>>>>>> Stashed changes
 
 clean:
 	rm *.o *.so
