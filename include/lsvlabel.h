@@ -10,6 +10,9 @@
 
 #include "bstream.h"
 
+#define LSVLABEL_RECORD_TYPE 7
+#define LSVLABEL_SUBTYPE 21
+
 typedef struct LSVLabel {
 	bstream_t *value;
 	bstream_t *label;

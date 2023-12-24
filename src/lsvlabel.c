@@ -35,3 +35,29 @@ bool lsvlabel_destroy(lsvlabel_t *haystack){
 	free(haystack);
 	return true;
 }
+
+//lsvlabel_list_t
+lsvlabel_list_t *lsvlabel_list_new(int32_t record_type,int32_t subtype,int32_t n_labels,lsvlabel_t **labels){
+	if(record_type!=LSVLABEL_RECORD_TYPE || subtype!=LSVLABEL_SUBTYPE)
+		return NULL;
+	lsvlabel_list_t *ret=(lsvlabel_list_t*)malloc(sizeof(lsvlabel_t));
+	if(!ret)
+		return NULL;
+	ret->constructed=false;
+	ret->record_type=record_type;
+	ret->subtype=subtype;
+	ret->n_labels=n_labels;
+	ret->labels=(lsvlabel_t**)calloc(ret->n_labels,sizeof(lsvlabel_t*));
+	for(int i=0;i<ret->n_labels;i++){
+		ret->labels[i]=lsvlabel_new(labels[i]->value,labels[i]->label);
+		if(!ret->labels[i]){
+			for(int j=0;j<=i;j++)
+				lsvlabel_destroy(ret->labels[j]);
+			free(ret->labels);
+			free(ret);
+			return NULL;
+		}
+	}
+	ret->constructed=true;
+	return ret;
+}
