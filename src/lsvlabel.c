@@ -117,7 +117,20 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 
 	long marker=0;
 	while(marker<count){
-		//int32_t var_name_length
+		int32_t var_name_length=-1;
+		fread(&var_name_length,sizeof(int32_t),1,handle);
+		marker+=sizeof(int32_t);
+		if(var_name_length<=0 || ferror(handle) || feof(handle)){
+			printf("LSVLabel file segment corrupted...\n");
+			return NULL;
+		}
+		bstream_t *var_name=bstream_new_wl(var_name_length);
+		if(!var_name){
+			printf("Error allocating memory for LSVLabel List var name....\n");
+			return NULL;
+		}
+		fread(var_name->stream,sizeof(char),var_name_length,handle);
+		marker+=var_name_length;
 	}
 }
 
