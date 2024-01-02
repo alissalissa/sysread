@@ -18,14 +18,12 @@
 #define LSVLABEL_MAX_WIDTH 32767
 
 typedef struct LSVLabel {
-	bstream_t *var_name;
-	int32_t count;
-	bstream_t **value;
-	bstream_t **label;
+	bstream_t *value;
+	bstream_t *label;
 	bool constructed;
 }lsvlabel_t;
 
-lsvlabel_t *lsvlabel_new(bstream_t*,int32_t,bstream_t**,bstream_t**);
+lsvlabel_t *lsvlabel_new(bstream_t*,bstream_t*);
 bool lsvlabel_destroy(lsvlabel_t*);
 
 typedef struct LSVLabelList {

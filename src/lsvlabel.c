@@ -2,41 +2,23 @@
 #include "lsvlabel.h"
 
 //lsvlabel_t
-lsvlabel_t *lsvlabel_new(bstream_t *var_name,int32_t count,bstream_t **value,bstream_t **label){
+lsvlabel_t *lsvlabel_new(bstream_t *value,bstream_t *label){
 	lsvlabel_t *ret=(lsvlabel_t*)malloc(sizeof(lsvlabel_t));
 	if(!ret)
 		return NULL;
 	ret->constructed=false;
-	ret->var_name=bstream_cnew(var_name);
-	if(!ret->var_name){
-		free(ret);
-		return NULL;
-	}
-	ret->count=count;
-	ret->value=(bstream_t**)calloc(ret->count,sizeof(bstream_t*));
+	ret->value=bstream_cnew(value);
 	if(!ret->value){
-		bstream_destroy(ret->var_name);
 		free(ret);
 		return NULL;
 	}
-	ret->label=(bstream_t**)calloc(ret->count,sizeof(bstream_t*));
+	ret->label=bstream_cnew(label);
 	if(!ret->label){
-		free(ret->value);
-		bstream_destroy(ret->var_name);
+		bstream_destroy(ret->value);
 		free(ret);
 		return NULL;
 	}
-	for(int32_t i=0;i<ret->count;i++){
-		ret->value[i]=bstream_cnew(value[i]);
-		ret->label[i]=bstream_cnew(label[i]);
-		if(!ret->value[i] || !ret->label[i]){
-			for(int32_t j=0;j<=i;j++)
-				bstream_mass_destroy(2,ret->value[j],ret->label[j]);
-			bstream_destroy(var_name);
-			free(ret);
-			return NULL;
-		}
-	}
+	ret->constructed=true;
 	return ret;
 }
 
@@ -46,12 +28,9 @@ bool lsvlabel_destroy(lsvlabel_t *haystack){
 	if(!haystack->constructed)
 		return false;
 	haystack->constructed=false;
-	for(int32_t i=0;i<haystack->count;i++)
-		if(!bstream_mass_destroy(2,haystack->value[i],haystack->label[i]))
-			return false;
-	free(haystack->value);
-	free(haystack->label);
-	if(!bstream_destroy(haystack->var_name))
+	if(!bstream_destroy(haystack->value))
+		return false;
+	if(!bstream_destroy(haystack->label))
 		return false;
 	free(haystack);
 	return true;
@@ -70,7 +49,7 @@ lsvlabel_list_t *lsvlabel_list_new(int32_t record_type,int32_t subtype,int32_t n
 	ret->n_labels=n_labels;
 	ret->labels=(lsvlabel_t**)calloc(ret->n_labels,sizeof(lsvlabel_t*));
 	for(int i=0;i<ret->n_labels;i++){
-		ret->labels[i]=lsvlabel_new(labels[i]->var_name,labels[i]->count,labels[i]->value,labels[i]->label);
+		ret->labels[i]=lsvlabel_new(labels[i]->value,labels[i]->label);
 		if(!ret->labels[i]){
 			for(int j=0;j<=i;j++)
 				lsvlabel_destroy(ret->labels[j]);
@@ -115,7 +94,7 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 		return NULL;
 	}
 
-	long marker=0;
+	int32_t marker=0;
 	while(marker<count){
 		int32_t var_name_length=-1;
 		fread(&var_name_length,sizeof(int32_t),1,handle);
@@ -131,6 +110,32 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 		}
 		fread(var_name->stream,sizeof(char),var_name_length,handle);
 		marker+=var_name_length;
+
+		int32_t var_width=-1;
+		fread(&var_width,sizeof(int32_t),1,handle);
+		if(var_width<LSVLABEL_MIN_WIDTH || var_width>LSVLABEL_MAX_WIDTH){
+			printf("LSVLabel variable width out of bounds...\n");
+			bstream_destroy(var_name);
+			return NULL;
+		}else if(ferror(handle) || feof(handle)){
+			printf("LSVLabel file segment corrupted...\n");
+			bstream_destroy(var_name);
+			return NULL;
+		}
+		marker+=sizeof(int32_t);
+
+		int32_t n_labels=-1;
+		fread(&n_labels,sizeof(int32_t),1,handle);
+		if(n_labels<0 || ferror(handle) || feof(handle)){
+			printf("LSVLabel file segment corrupted...\n");
+			bstream_destroy(var_name);
+			return NULL;
+		}
+		marker+=sizeof(int32_t);
+
+		for(int32_t i=0;i<n_labels;i++){
+
+		}
 	}
 }
 
