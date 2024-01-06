@@ -22,6 +22,12 @@ lsvlabel_t *lsvlabel_new(bstream_t *value,bstream_t *label){
 	return ret;
 }
 
+lsvlabel_t *lsvlabel_cnew(lsvlabel_t *haystack){
+	assert(haystack);
+	lsvlabel_t *ret=lsvlabel_new(haystack->value,haystack->label);
+	return ret;
+}
+
 bool lsvlabel_destroy(lsvlabel_t *haystack){
 	if(!haystack)
 		return false;
@@ -32,6 +38,57 @@ bool lsvlabel_destroy(lsvlabel_t *haystack){
 		return false;
 	if(!bstream_destroy(haystack->label))
 		return false;
+	free(haystack);
+	return true;
+}
+
+//lsvar_t
+lsvar_t *lsvar_new(bstream_t *var_name,int32_t size,lsvlabel_t **labels){
+	assert(var_name);
+	assert(labels);
+	lsvar_t *ret=(lsvar_t*)malloc(sizeof(lsvar_t));
+	if(!ret)
+		return NULL;
+	ret->constructed=false;
+	ret->var_name=bstream_cnew(var_name);
+	if(!ret->var_name){
+		free(ret);
+		return NULL;
+	}
+	ret->size=size;
+	ret->labels=(lsvlabel_t**)calloc(ret->size,sizeof(lsvlabel_t*));
+	if(!ret->labels){
+		bstream_destroy(ret->var_name);
+		free(ret);
+		return NULL;
+	}
+	for(int32_t i=0;i<ret->size;i++){
+		ret->labels[i]=lsvlabel_cnew(labels[i]);
+		if(!ret->labels[i]){
+			for(int32_t j=0;j<=i;j++)
+				lsvlabel_destroy(ret->labels[j]);
+			free(ret->labels);
+			bstream_destroy(ret->var_name);
+			free(ret);
+			return NULL;
+		}
+	}
+	ret->constructed=true;
+	return ret;
+}
+
+bool lsvar_destroy(lsvar_t *haystack){
+	if(!haystack)
+		return false;
+	if(!haystack->constructed)
+		return false;
+	haystack->constructed=false;
+	if(!bstream_destroy(haystack->var_name))
+		return false;
+	for(int i=0;i<haystack->size;i++)
+		if(!lsvlabel_destroy(haystack->labels[i]))
+			return false;
+	free(haystack->labels);
 	free(haystack);
 	return true;
 }

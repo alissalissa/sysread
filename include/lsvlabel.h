@@ -24,7 +24,18 @@ typedef struct LSVLabel {
 }lsvlabel_t;
 
 lsvlabel_t *lsvlabel_new(bstream_t*,bstream_t*);
+lsvlabel_t *lsvlabel_cnew(lsvlabel_t*); //copy factory
 bool lsvlabel_destroy(lsvlabel_t*);
+
+typedef struct LSVariable {
+	bstream_t *var_name;
+	int32_t size;
+	lsvlabel_t **labels;
+	bool constructed;
+}lsvar_t;
+
+lsvar_t *lsvar_new(bstream_t*,int32_t,lsvlabel_t**);
+bool lsvar_destroy(lsvar_t*);
 
 typedef struct LSVLabelList {
 	//Header
