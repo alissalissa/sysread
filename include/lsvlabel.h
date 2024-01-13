@@ -43,13 +43,13 @@ typedef struct LSVLabelList {
 	int32_t subtype;
 
 	//Values
-	int32_t n_labels;
-	lsvlabel_t **labels;
+	int32_t size;
+	lsvar_t **variables;
 	
 	bool constructed;
 }lsvlabel_list_t;
 
-lsvlabel_list_t *lsvlabel_list_new(int32_t,int32_t,int32_t,bstream_t*,lsvlabel_t**);
+lsvlabel_list_t *lsvlabel_list_new(int32_t,int32_t,int32_t,lsvar_t**);
 lsvlabel_list_t *lsvlabel_list_fnew(FILE*);
 bool lsvlabel_list_destroy(lsvlabel_list_t*);
 

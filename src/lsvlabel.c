@@ -94,7 +94,8 @@ bool lsvar_destroy(lsvar_t *haystack){
 }
 
 //lsvlabel_list_t
-lsvlabel_list_t *lsvlabel_list_new(int32_t record_type,int32_t subtype,int32_t n_labels,bstream_t *var_name,lsvlabel_t **labels){
+//TODO update to use lsvar_t
+lsvlabel_list_t *lsvlabel_list_new(int32_t record_type,int32_t subtype,int32_t size,lsvar_t **variables){
 	if(record_type!=LSVLABEL_RECORD_TYPE || subtype!=LSVLABEL_SUBTYPE)
 		return NULL;
 	lsvlabel_list_t *ret=(lsvlabel_list_t*)malloc(sizeof(lsvlabel_t));
@@ -103,14 +104,18 @@ lsvlabel_list_t *lsvlabel_list_new(int32_t record_type,int32_t subtype,int32_t n
 	ret->constructed=false;
 	ret->record_type=record_type;
 	ret->subtype=subtype;
-	ret->n_labels=n_labels;
-	ret->labels=(lsvlabel_t**)calloc(ret->n_labels,sizeof(lsvlabel_t*));
-	for(int i=0;i<ret->n_labels;i++){
-		ret->labels[i]=lsvlabel_new(labels[i]->value,labels[i]->label);
-		if(!ret->labels[i]){
-			for(int j=0;j<=i;j++)
-				lsvlabel_destroy(ret->labels[j]);
-			free(ret->labels);
+	ret->size=size;
+	ret->variables=(lsvar_t**)calloc(ret->size,sizeof(lsvar_t*));
+	if(!ret->variables){
+		free(ret);
+		return NULL;
+	}
+	for(int32_t i=0;i<ret->size;i++){
+		ret->variables[i]=lsvar_new(variables[i]->var_name,variables[i]->size,variables[i]->labels);
+		if(!ret->variables[i]){
+			for(int32_t j=0;j<=i;j++)
+				lsvar_destroy(ret->variables[j]);
+			free(ret->variables);
 			free(ret);
 			return NULL;
 		}
@@ -152,6 +157,8 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 	}
 
 	int32_t marker=0;
+	lsvar_t **variables=NULL;
+	int32_t variable_count=0;
 	while(marker<count){
 		int32_t var_name_length=-1;
 		fread(&var_name_length,sizeof(int32_t),1,handle);
@@ -190,10 +197,82 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 		}
 		marker+=sizeof(int32_t);
 
-		for(int32_t i=0;i<n_labels;i++){
-
+		lsvlabel_t **labels=(lsvlabel_t**)calloc(n_labels,sizeof(lsvlabel_t*));
+		if(!labels){
+			printf("Memory allocation error...\n");
+			bstream_destroy(var_name);
+			return NULL;
 		}
+		for(int32_t i=0;i<n_labels;i++){
+			int32_t value_length=-1;
+			fread(&value_length,sizeof(int32_t),1,handle);
+			//TODO Error checks must include freeing lsvlabel_t **labels
+			if(ferror(handle) || feof(handle) || value_length<0){
+				printf("Label corrupted....\n");
+				free(labels);
+				bstream_destroy(var_name);
+				return NULL;
+			}
+			marker+=sizeof(int32_t);
+			bstream_t *value=bstream_new_wl((size_t)value_length);
+			//TODO memory allocation checks?
+			fread(value->stream,sizeof(char),value->length,handle);
+			if(ferror(handle) || feof(handle)){
+				printf("Label corrupted....\n");
+				free(labels);
+				bstream_destroy(var_name);
+				bstream_destroy(value);
+				return NULL;
+			}
+			marker+=value->length;
+
+			int32_t label_length=-1;
+			fread(&label_length,sizeof(int32_t),1,handle);
+			if(ferror(handle) || feof(handle) || label_length<0){
+				printf("Label corrupted....\n");
+				free(labels);
+				bstream_destroy(var_name);
+				bstream_destroy(value);
+				return NULL;
+			}
+			marker+=sizeof(int32_t);
+			bstream_t *label=bstream_new_wl((size_t)label_length);
+
+			fread(label->stream,sizeof(char),label->length,handle);
+			if(ferror(handle) || feof(handle)){
+				printf("Label corrupted....\n");
+				free(labels);
+				bstream_destroy(var_name);
+				bstream_destroy(value);
+				bstream_destroy(label);
+				return NULL;
+			}
+			marker+=label_length;
+
+			labels[i]=lsvlabel_new(value,label);
+			bstream_mass_destroy(2,value,label);
+			if(!labels[i]){
+				printf("LSVLabel memory allocation error....\n");
+				bstream_destroy(var_name);
+				free(labels);
+				//TODO what about freeing the previously allocated labels?
+				return NULL;
+			}
+		}
+		variable_count++;
+		variables=(lsvar_t**)realloc(variables,sizeof(lsvar_t*)*variable_count);
+		//TODO what if this fails?
+		variables[variable_count-1]=lsvar_new(var_name,n_labels,labels);
+		for(int32_t i=0;i<n_labels;i++)
+			lsvlabel_destroy(labels[i]);
+		free(labels);
 	}
+	lsvlabel_list_t *ret=lsvlabel_list_new(record_type,subtype,variable_count,variables);
+	for(int32_t i=0;i<variable_count;i++)
+		lsvar_destroy(variables[i]);
+	free(variables);
+	ret->constructed=true;
+	return ret;
 }
 
 bool lsvlabel_list_destroy(lsvlabel_list_t *haystack){
@@ -202,10 +281,10 @@ bool lsvlabel_list_destroy(lsvlabel_list_t *haystack){
 	if(!haystack->constructed)
 		return false;
 	haystack->constructed=false;
-	for(int i=0;i<haystack->n_labels;i++)
-		if(!lsvlabel_destroy(haystack->labels[i]))
+	for(int i=0;i<haystack->size;i++)
+		if(!lsvar_destroy(haystack->variables[i]))
 			return false;
-	free(haystack->labels);
+	free(haystack->variables);
 	free(haystack);
 	return true;
 }
