@@ -94,7 +94,6 @@ bool lsvar_destroy(lsvar_t *haystack){
 }
 
 //lsvlabel_list_t
-//TODO update to use lsvar_t
 lsvlabel_list_t *lsvlabel_list_new(int32_t record_type,int32_t subtype,int32_t size,lsvar_t **variables){
 	if(record_type!=LSVLABEL_RECORD_TYPE || subtype!=LSVLABEL_SUBTYPE)
 		return NULL;
@@ -206,19 +205,29 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 		for(int32_t i=0;i<n_labels;i++){
 			int32_t value_length=-1;
 			fread(&value_length,sizeof(int32_t),1,handle);
-			//TODO Error checks must include freeing lsvlabel_t **labels
 			if(ferror(handle) || feof(handle) || value_length<0){
 				printf("Label corrupted....\n");
+				for(int32_t j=0;j<=i;j++)
+					lsvlabel_destroy(labels[j]);
 				free(labels);
 				bstream_destroy(var_name);
 				return NULL;
 			}
 			marker+=sizeof(int32_t);
 			bstream_t *value=bstream_new_wl((size_t)value_length);
-			//TODO memory allocation checks?
+			if(!value){
+				for(int32_t j=0;j<=i;j++)
+					lsvlabel_destroy(labels[j]);
+				free(labels);
+				bstream_destroy(var_name);
+				//bstream_destroy(value);
+				return NULL;
+			}
 			fread(value->stream,sizeof(char),value->length,handle);
 			if(ferror(handle) || feof(handle)){
 				printf("Label corrupted....\n");
+				for(int32_t j=0;j<=i;j++)
+					lsvlabel_destroy(labels[j]);
 				free(labels);
 				bstream_destroy(var_name);
 				bstream_destroy(value);
@@ -230,6 +239,8 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 			fread(&label_length,sizeof(int32_t),1,handle);
 			if(ferror(handle) || feof(handle) || label_length<0){
 				printf("Label corrupted....\n");
+				for(int32_t j=0;j<=i;j++)
+					lsvlabel_destroy(labels[j]);
 				free(labels);
 				bstream_destroy(var_name);
 				bstream_destroy(value);
@@ -237,10 +248,20 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 			}
 			marker+=sizeof(int32_t);
 			bstream_t *label=bstream_new_wl((size_t)label_length);
+			if(!label){
+				for(int32_t j=0;j<=i;j++)
+					lsvlabel_destroy(labels[j]);
+				free(labels);
+				bstream_destroy(var_name);
+				bstream_destroy(value);
+				return NULL;
+			}
 
 			fread(label->stream,sizeof(char),label->length,handle);
 			if(ferror(handle) || feof(handle)){
 				printf("Label corrupted....\n");
+				for(int32_t j=0;j<=i;j++)
+					lsvlabel_destroy(labels[j]);
 				free(labels);
 				bstream_destroy(var_name);
 				bstream_destroy(value);
@@ -254,18 +275,30 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 			if(!labels[i]){
 				printf("LSVLabel memory allocation error....\n");
 				bstream_destroy(var_name);
+				for(int32_t j=0;j<=i;j++)
+					lsvlabel_destroy(labels[j]);
 				free(labels);
-				//TODO what about freeing the previously allocated labels?
 				return NULL;
 			}
 		}
 		variable_count++;
 		variables=(lsvar_t**)realloc(variables,sizeof(lsvar_t*)*variable_count);
-		//TODO what if this fails?
+		if(!variables){
+			for(int32_t i=0;i<variable_count;i++)
+				lsvar_destroy(variables[i]);
+			for(int32_t i=0;i<n_labels;i++)
+				lsvlabel_destroy(labels[i]);
+			free(variables);
+			free(labels);
+			bstream_destroy(var_name);
+			return NULL;
+		}
+		
 		variables[variable_count-1]=lsvar_new(var_name,n_labels,labels);
 		for(int32_t i=0;i<n_labels;i++)
 			lsvlabel_destroy(labels[i]);
 		free(labels);
+		bstream_destroy(var_name);
 	}
 	lsvlabel_list_t *ret=lsvlabel_list_new(record_type,subtype,variable_count,variables);
 	for(int32_t i=0;i<variable_count;i++)
