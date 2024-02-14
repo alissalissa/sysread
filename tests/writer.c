@@ -229,3 +229,79 @@ bool write_vlsr(const char *path){
 	fclose(handle);
 	return true;
 }
+
+bool write_lsvlabel(const char *path){
+	//Open file
+	FILE *output=fopen(path,"wb");
+	assert(output);
+	
+	//Write the header
+	const int32_t rec_type=LSVLABEL_RECORD_TYPE;
+	const int32_t subtype=LSVLABEL_SUBTYPE;
+	const int32_t size=1;
+	fwrite(&rec_type,sizeof(int32_t),1,output);
+	fwrite(&subtype,sizeof(int32_t),1,output);
+	fwrite(&size,sizeof(int32_t),1,output);
+
+	//Compile the data for the record so that we can eventually compute its size
+	char var_one_name[]="foo\0";
+	int32_t var_one_name_length=strlen(var_one_name);
+	char var_two_name[]="bar\0";
+	int32_t var_two_name_length=strlen(var_two_name);
+	char *var_one_labels[]={
+		"test1\0",
+		"test2\0"
+	};
+	char *var_one_values[]={
+		"value1\0",
+		"value2\0"
+	};
+	char *var_two_labels[]={
+		"test3\0",
+		"test4\0"
+	};
+	char *var_two_values[]={
+		"value3\0",
+		"value4\0"
+	};
+	int32_t n_labels=2;
+	int32_t var_width=strlen(var_one_values[0]);
+	int32_t label_length=strlen(var_two_labels[0]);
+
+	int32_t count=strlen(var_one_name)+strlen(var_two_name);
+	count+=(sizeof(int32_t)*2); //var_name_len
+	count+=((sizeof(int32_t)*2)*2); //var_width and n_labels
+	count+=((sizeof(int32_t)*4)*2); //value_len and label_len
+	count+=(strlen(var_one_labels[0]) + strlen(var_one_labels[1]) + strlen(var_one_values[0]) + strlen(var_one_values[1]));
+	count+=(strlen(var_two_labels[0]) + strlen(var_two_labels[1]) + strlen(var_two_values[0]) + strlen(var_two_values[1]));
+
+	fwrite(&count,sizeof(int32_t),1,output);
+	fwrite(&var_one_name_length,sizeof(int32_t),1,output);
+	fwrite(var_one_name,sizeof(char),strlen(var_one_name),output);
+	fwrite(&var_width,sizeof(int32_t),1,output);
+	fwrite(&n_labels,sizeof(int32_t),1,output);
+	for(int i=0;i<=1;i++){
+		fwrite(&var_width,sizeof(int32_t),1,output);
+		fwrite(var_one_values[i],sizeof(char),var_width,output);
+		fwrite(&label_length,sizeof(int32_t),1,output);
+		fwrite(var_one_labels[i],sizeof(char),label_length,output);
+	}
+
+	fwrite(&var_two_name_length,sizeof(int32_t),1,output);
+	fwrite(var_two_name,sizeof(char),strlen(var_two_name),output);
+	fwrite(&var_width,sizeof(int32_t),1,output);
+	fwrite(&n_labels,sizeof(int32_t),1,output);
+	for(int i=0;i<=1;i++){
+		fwrite(&var_width,sizeof(int32_t),1,output);
+		fwrite(var_two_values[i],sizeof(char),var_width,output);
+		fwrite(&label_length,sizeof(int32_t),1,output);
+		fwrite(var_two_labels[i],sizeof(char),label_length,output);
+	}
+
+	if(ferror(output)){
+		fclose(output);
+		return false;
+	}
+	fclose(output);
+	return true;
+}

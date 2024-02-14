@@ -13,6 +13,7 @@
 #include "sysheader.h"
 #include "bstream.h"
 #include "vlsr.h"
+#include "lsvlabel.h"
 
 bool write_mrset(const char*);
 bool write_epir(const char*);
