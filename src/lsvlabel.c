@@ -97,7 +97,7 @@ bool lsvar_destroy(lsvar_t *haystack){
 lsvlabel_list_t *lsvlabel_list_new(int32_t record_type,int32_t subtype,int32_t size,lsvar_t **variables){
 	if(record_type!=LSVLABEL_RECORD_TYPE || subtype!=LSVLABEL_SUBTYPE)
 		return NULL;
-	lsvlabel_list_t *ret=(lsvlabel_list_t*)malloc(sizeof(lsvlabel_t));
+	lsvlabel_list_t *ret=(lsvlabel_list_t*)malloc(sizeof(lsvlabel_list_t));
 	if(!ret)
 		return NULL;
 	ret->constructed=false;
@@ -134,18 +134,21 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 		printf("LSVLabel file segment corrupted...\n");
 		return NULL;
 	}
+	printf("record type = %d\n",record_type);
 
 	fread(&subtype,sizeof(int32_t),1,handle);
 	if(subtype!=LSVLABEL_SUBTYPE || ferror(handle) || feof(handle)){
 		printf("LSVLabel file segment corrupted...\n");
 		return NULL;
 	}
+	printf("subtype = %d\n",subtype);
 
 	fread(&size_check,sizeof(int32_t),1,handle);
 	if(size_check!=1 || ferror(handle) || feof(handle)){
 		printf("LSVLabel file segment corrupted...\n");
 		return NULL;
 	}
+	printf("size check = %d\n",size_check);
 
 	//Section length
 	int32_t count=-1;
@@ -154,6 +157,7 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 		printf("LSVLabel file segment corrupted...\n");
 		return NULL;
 	}
+	printf("%d bytes to be read...\n",count);
 
 	int32_t marker=0;
 	lsvar_t **variables=NULL;
@@ -162,6 +166,7 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 		int32_t var_name_length=-1;
 		fread(&var_name_length,sizeof(int32_t),1,handle);
 		marker+=sizeof(int32_t);
+		printf("var_name_length = %d\nmarker=%d\n",var_name_length,marker);
 		if(var_name_length<=0 || ferror(handle) || feof(handle)){
 			printf("LSVLabel file segment corrupted...\n");
 			return NULL;
@@ -173,6 +178,7 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 		}
 		fread(var_name->stream,sizeof(char),var_name_length,handle);
 		marker+=var_name_length;
+		printf("var name = %s\nmarker=%d\n",bstream_cstr(*var_name),marker);
 
 		int32_t var_width=-1;
 		fread(&var_width,sizeof(int32_t),1,handle);
@@ -186,6 +192,7 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 			return NULL;
 		}
 		marker+=sizeof(int32_t);
+		printf("var width = %d\nmarker=%d\n",var_width,marker);
 
 		int32_t n_labels=-1;
 		fread(&n_labels,sizeof(int32_t),1,handle);
@@ -195,6 +202,7 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 			return NULL;
 		}
 		marker+=sizeof(int32_t);
+		printf("%d labels\nmarker=%d\n",n_labels,marker);
 
 		lsvlabel_t **labels=(lsvlabel_t**)calloc(n_labels,sizeof(lsvlabel_t*));
 		if(!labels){
@@ -214,6 +222,8 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 				return NULL;
 			}
 			marker+=sizeof(int32_t);
+			printf("Value length = %d\nmarker=%d\\n",value_length,marker);
+
 			bstream_t *value=bstream_new_wl((size_t)value_length);
 			if(!value){
 				for(int32_t j=0;j<=i;j++)
@@ -234,6 +244,7 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 				return NULL;
 			}
 			marker+=value->length;
+			printf("value = %s\nmarker=%d\n",bstream_cstr(*value),marker);
 
 			int32_t label_length=-1;
 			fread(&label_length,sizeof(int32_t),1,handle);
@@ -247,6 +258,8 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 				return NULL;
 			}
 			marker+=sizeof(int32_t);
+			printf("label length = %d\nmarker=%d\n",label_length,marker);
+
 			bstream_t *label=bstream_new_wl((size_t)label_length);
 			if(!label){
 				for(int32_t j=0;j<=i;j++)
@@ -256,7 +269,6 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 				bstream_destroy(value);
 				return NULL;
 			}
-
 			fread(label->stream,sizeof(char),label->length,handle);
 			if(ferror(handle) || feof(handle)){
 				printf("Label corrupted....\n");
@@ -269,6 +281,7 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 				return NULL;
 			}
 			marker+=label_length;
+			printf("label = %s\nmarker=%d\n",bstream_cstr(*label),marker);
 
 			labels[i]=lsvlabel_new(value,label);
 			bstream_mass_destroy(2,value,label);
@@ -281,6 +294,7 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 				return NULL;
 			}
 		}
+		printf("First loop exit\n");
 		variable_count++;
 		variables=(lsvar_t**)realloc(variables,sizeof(lsvar_t*)*variable_count);
 		if(!variables){
@@ -300,24 +314,36 @@ lsvlabel_list_t *lsvlabel_list_fnew(FILE *handle){
 		free(labels);
 		bstream_destroy(var_name);
 	}
+	printf("Second loop exit.\n");
 	lsvlabel_list_t *ret=lsvlabel_list_new(record_type,subtype,variable_count,variables);
+	printf("constructed\n");
 	for(int32_t i=0;i<variable_count;i++)
 		lsvar_destroy(variables[i]);
+	printf("Individual variables freed\n");
 	free(variables);
+	printf("Overarch free\n");
 	ret->constructed=true;
 	return ret;
 }
 
 bool lsvlabel_list_destroy(lsvlabel_list_t *haystack){
+	printf("Entering destroy!\n");
 	if(!haystack)
 		return false;
 	if(!haystack->constructed)
 		return false;
 	haystack->constructed=false;
-	for(int i=0;i<haystack->size;i++)
+	printf("haystack->size=%d\n",haystack->size);
+	for(int i=0;i<haystack->size;i++){
 		if(!lsvar_destroy(haystack->variables[i]))
 			return false;
+		printf("%d\t",i);
+	}
+	printf("lsvar_destroy loop complete\n");
 	free(haystack->variables);
-	free(haystack);
+	printf("haystack->variable freed\n");
+	if(haystack)
+		free(haystack);
+	printf("haystack freed\n");
 	return true;
 }

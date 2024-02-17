@@ -253,16 +253,16 @@ bool write_lsvlabel(const char *path){
 		"test2\0"
 	};
 	char *var_one_values[]={
-		"value1\0",
-		"value2\0"
+		"testvalue1\0",
+		"testvalue2\0"
 	};
 	char *var_two_labels[]={
 		"test3\0",
 		"test4\0"
 	};
 	char *var_two_values[]={
-		"value3\0",
-		"value4\0"
+		"testvalue3\0",
+		"testvalue4\0"
 	};
 	int32_t n_labels=2;
 	int32_t var_width=strlen(var_one_values[0]);

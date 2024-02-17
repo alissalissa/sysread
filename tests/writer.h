@@ -22,5 +22,6 @@ bool write_svset(const char*);
 bool write_lvnr(const char*);
 bool write_header(const char*);
 bool write_vlsr(const char*);
+bool write_lsvlabel(const char*);
 
 #endif

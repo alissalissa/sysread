@@ -9,6 +9,7 @@ compile:
 	clang -c -g -o disppar_test.o -I../include disppar_test.c
 	clang -c -g -o svtest.o -I../include svtest.c
 	clang -c -g -o lvnr_test.o -I../include lvnr_test.c
+	clang -c -g -o lsvlabel_test.o -I../include `pkg-config --cflags check` lsvlabel_test.c
 	clang -g -o mrset_test -L../bin -Wl,-rpath,../bin -lsysfile writer.o mrset_test.o
 	clang -g -o epir_test -L../bin -Wl,-rpath,../bin -lsysfile writer.o epir_test.o
 	clang -g -o disppar_test -L../bin -Wl,-rpath,../bin -lsysfile writer.o disppar_test.o
@@ -16,6 +17,7 @@ compile:
 	clang -g -o lvnr_test -L../bin -Wl,-rpath,../bin -lsysfile writer.o lvnr_test.o `pkg-config --cflags --libs check`
 	clang -g -o header_test -L../bin -Wl,-rpath,../bin -lsysfile -I../include writer.o header_test.c
 	clang -g -o vlsr_test -L../bin -Wl,-rpath,../bin -lsysfile -I../include writer.o vlsr_test.c
+	clang -g -o lsvlabel_test -L../bin -Wl,-rpath,../bin -lsysfile lsvlabel_test.o writer.o `pkg-config --cflags --libs check`
 
 clean:
-	rm *.o *.sys epir_test mrset_test disppar_test svtest
+	rm *.o *.sys epir_test mrset_test disppar_test svtest lsvlabel_test lvnr_test vlsr_test header_test
