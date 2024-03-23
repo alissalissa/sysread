@@ -2,73 +2,77 @@
 default: compile
 
 #compile
-compile: lsvlabel.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o sysiinfo.o sysfinfo.o svset.o
+compile: lsmissing.o lsvlabel.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o sysiinfo.o sysfinfo.o svset.o
 	$(info Linking shared library...)
-	clang -o libsysfile.so -g lsvlabel.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sysiinfo.o sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o sysfinfo.o svset.o -shared -fPIC
+	gcc -o libsysfile.so -g lsmissing.o lsvlabel.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sysiinfo.o sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o sysfinfo.o svset.o -shared -fPIC
 
 sfutil.o:
 	$(info Compiling sfutil.c...)
-	clang -g -c -o sfutil.o -I../include/ ../src/sfutil.c -fPIC
+	gcc -g -c -o sfutil.o -I../include/ ../src/sfutil.c -fPIC
 
 sysvl.o:
 	$(info Compiling sysvl.c...)
-	clang -g -c -o sysvl.o -I../include/ ../src/sysvl.c -fPIC
+	gcc -g -c -o sysvl.o -I../include/ ../src/sysvl.c -fPIC
 
 sysheader.o:
 	$(info Compiling sysheader.c...)
-	clang -g -c -o sysheader.o -I../include/ ../src/sysheader.c -fPIC
+	gcc -g -c -o sysheader.o -I../include/ ../src/sysheader.c -fPIC
 
 sysvar.o:
 	$(info Compiling sysvar.c...)
-	clang -g -c -o sysvar.o -I../include/ ../src/sysvar.c -fPIC
+	gcc -g -c -o sysvar.o -I../include/ ../src/sysvar.c -fPIC
 
 sysdoc.o:
 	$(info Compiling sysdoc.c...)
-	clang -g -c -o sysdoc.o -I../include/ ../src/sysdoc.c -fPIC
+	gcc -g -c -o sysdoc.o -I../include/ ../src/sysdoc.c -fPIC
 
 sysiinfo.o:
 	$(info Compiling sysiinfo.c...)
-	clang -g -c -o sysiinfo.o -I../include/ ../src/sysiinfo.c -fPIC
+	gcc -g -c -o sysiinfo.o -I../include/ ../src/sysiinfo.c -fPIC
 
 sysfinfo.o:
 	$(info Compiling sysfindo.c...)
-	clang -g -c -o sysfinfo.o -I../include/ ../src/sysfinfo.c -fPIC
+	gcc -g -c -o sysfinfo.o -I../include/ ../src/sysfinfo.c -fPIC
 
 mrset.o:
 	$(info Compiling mrset.c...)
-	clang -g -c -o mrset.o -I../include/ ../src/mrset.c -fPIC
+	gcc -g -c -o mrset.o -I../include/ ../src/mrset.c -fPIC
 
 bstream.o:
 	$(info Compiling bstream.c...)
-	clang -g -c -o bstream.o -I../include ../src/bstream.c -fPIC
+	gcc -g -c -o bstream.o -I../include ../src/bstream.c -fPIC
 
 epir.o:
 	$(info Compiling epir.c...)
-	clang -g -c -o epir.o -I../include ../src/epir.c -fPIC
+	gcc -g -c -o epir.o -I../include ../src/epir.c -fPIC
 
 disppar.o:
 	$(info Compiling disppar.c...)
-	clang -g -c -o disppar.o -I../include ../src/disppar.c -fPIC
+	gcc -g -c -o disppar.o -I../include ../src/disppar.c -fPIC
 
 svset.o:
 	$(info Compiling svset.c...)
-	clang -g -c -o svset.o -I../include ../src/svset.c -fPIC
+	gcc -g -c -o svset.o -I../include ../src/svset.c -fPIC
 
 lvnr.o:
 	$(info Compiling lvnr.c...)
-	clang -g -c -o lvnr.o -I../include ../src/lvnr.c -fPIC
+	gcc -g -c -o lvnr.o -I../include ../src/lvnr.c -fPIC
 
 vlsr.o:
 	$(info Compiling vlsr.c....)
-	clang -g -c -o vlsr.o -I../include ../src/vlsr.c -fPIC
+	gcc -g -c -o vlsr.o -I../include ../src/vlsr.c -fPIC
 
 syschare.o:
 	$(info Compiling syschare.c....)
-	clang -g -c -o syschare.o -I../include ../src/syschare.c -fPIC
+	gcc -g -c -o syschare.o -I../include ../src/syschare.c -fPIC
 
 lsvlabel.o:
 	$(info Compiling lsvlabel.c....)
-	clang -g -c -o lsvlabel.o -I../include ../src/lsvlabel.c -fPIC
+	gcc -g -c -o lsvlabel.o -I../include ../src/lsvlabel.c -fPIC
+
+lsmissing.o:
+	$(info Compiling lsmissing.c....)
+	gcc -g -c -o lsmissing.o -I../include ../src/lsmissing.c -fPIC
 
 clean:
 	rm *.o *.so

@@ -40,4 +40,5 @@ tests/svtest
 tests/lvnr_test
 tests/header_test
 tests/vlsr_test
+tests/lsvlabel_test
 .vscode
