@@ -2,12 +2,14 @@
 
 //struct MissingValue
 lsmv_t *lsmv_new(bstream_t *var_name,int8_t n,bstream_t **missing_values){
-    assert(var_name);
+    printf("Entering lsmv_new....\n");
+	assert(var_name);
     assert(missing_values);
 
     lsmv_t *ret=(lsmv_t*)malloc(sizeof(lsmv_t));
     if(!ret)
         return NULL;
+	printf("0\n");
     ret->constructed=false;
 
     ret->var_name=bstream_cnew(var_name);
@@ -15,6 +17,7 @@ lsmv_t *lsmv_new(bstream_t *var_name,int8_t n,bstream_t **missing_values){
         free(ret);
         return NULL;
     }
+	printf("1\n");
 
     ret->n=n;
 
@@ -24,7 +27,10 @@ lsmv_t *lsmv_new(bstream_t *var_name,int8_t n,bstream_t **missing_values){
         free(ret);
         return NULL;
     }
+	printf("2\n");
     for(int8_t i=0;i<ret->n;i++){
+		printf("%dth iteration\n",i);
+		printf("missing_values[i]=%s\n",bstream_cstr(*(missing_values[i])));
         ret->missing_values[i]=bstream_cnew(missing_values[i]);
         if(!ret->missing_values[i]){
             for(int8_t j=0;j<=i;j++)
@@ -35,8 +41,10 @@ lsmv_t *lsmv_new(bstream_t *var_name,int8_t n,bstream_t **missing_values){
             return NULL;
         }
     }
+	printf("3\n");
 
     ret->constructed=true;
+	printf("Exiting lsmv_new....\n");
     return ret;
 }
 
@@ -96,6 +104,7 @@ lsmvr_t *lsmvr_new(int32_t record_type,int32_t subtype,int32_t count,lsmv_t **re
 lsmvr_t *lsmvr_fnew(FILE *handle){
 	if(!handle)
 		return NULL;
+	printf("0\n");
 
 	int32_t record_type=0,subtype=0,size_check=0,count=0;
 	fread(&record_type,sizeof(int32_t),1,handle);
@@ -103,24 +112,28 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 		printf("Corrupted LSMVR record type...\n");
 		return NULL;
 	}
+	printf("record_type=%d\n",record_type);
 
 	fread(&subtype,sizeof(int32_t),1,handle);
 	if(ferror(handle) || feof(handle) || subtype!=LSMVR_SUBTYPE){
 		printf("Corrupted LSMVR subtype...\n");
 		return NULL;
 	}
+	printf("subtype=%d\n",subtype);
 
 	fread(&size_check,sizeof(int32_t),1,handle);
 	if(ferror(handle) || feof(handle) || size_check!=1){
 		printf("Corrupted LSMVR size check...\n");
 		return NULL;
 	}
+	printf("size check=%d\n",size_check);
 
 	fread(&count,sizeof(int32_t),1,handle);
 	if(ferror(handle) || feof(handle)){
 		printf("Corrupted LSMVR...\n");
 		return NULL;
 	}
+	printf("%d bytes in total\n",count);
 
 	int32_t index=0;
 	lsmv_t **records=NULL;
@@ -140,9 +153,13 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 		}
 		fread(var_name->stream,sizeof(char),var_name->length,handle);
 		index+=var_name->length;
+		printf("var_name = ");
+		bstream_print(*var_name);
+		printf("\n");
 
 		int8_t n_missing_values=0;
 		fread(&n_missing_values,sizeof(int8_t),1,handle);
+		printf("%d missing values\n",n_missing_values);
 		index+=sizeof(int8_t);
 		if(n_missing_values<1 || n_missing_values>3){
 			bstream_destroy(var_name);
@@ -151,6 +168,7 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 			free(records);
 			return NULL;
 		}
+		printf("6\n");
 
 		int32_t value_length=0;
 		fread(&value_length,sizeof(int32_t),1,handle);
@@ -162,6 +180,7 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 			free(records);
 			return NULL;
 		}
+		printf("value length = %d\n",value_length);
 
 		bstream_t *pre_split_values=bstream_new_wl(value_length*n_missing_values);
 		if(!pre_split_values){
@@ -180,41 +199,10 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 			free(records);
 			return NULL;
 		}
-		bstream_t **split_values=(bstream_t**)calloc(n_missing_values,sizeof(bstream_t*));
-		if(!split_values){
-			bstream_destroy(pre_split_values);
-			bstream_destroy(var_name);
-			for(int32_t i=0;i<n_records;i++)
-				lsmv_destroy(records[i]);
-			free(records);
-			return NULL;
-		}
-		for(int8_t i=0;i<n_missing_values;i++){
-			split_values[i]=bstream_new_wl(value_length);
-			if(!split_values[i]){
-				bstream_destroy(pre_split_values);
-				bstream_destroy(var_name);
-				for(int32_t i=0;i<n_records;i++)
-					lsmv_destroy(records[i]);
-				free(records);
-				for(int8_t j=0;j<=i;j++)
-					bstream_destroy(split_values[j]);
-				free(split_values);
-				return NULL;
-			}
-			split_values[i]=memcpy(split_values[i],pre_split_values+(value_length*i),value_length);
-			if(!split_values[i]){
-				bstream_destroy(pre_split_values);
-				bstream_destroy(var_name);
-				for(int32_t i=0;i<n_records;i++)
-					lsmv_destroy(records[i]);
-				free(records);
-				for(int8_t j=0;j<=i;j++)
-					bstream_destroy(split_values[j]);
-				free(split_values);
-				return NULL;
-			}
-		}
+		printf("total value = ");
+		bstream_print(*pre_split_values);
+		printf("\n");
+		bstream_t **split_values=bstream_split_count(*pre_split_values,value_length);
 		records=(lsmv_t**)realloc(records,n_records*sizeof(lsmv_t*));
 		if(!records){
 			bstream_destroy(pre_split_values);
@@ -227,6 +215,7 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 			free(split_values);
 			return NULL;
 		}
+		printf("13\n");
 		records[n_records-1]=lsmv_new(var_name,n_missing_values,split_values);
 		bstream_destroy(pre_split_values);
 		bstream_destroy(var_name);
@@ -239,6 +228,7 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 			free(records);
 			return NULL;
 		}
+		printf("14\n");
 	}
 
 	lsmvr_t *ret=lsmvr_new(record_type,subtype,n_records,records);
@@ -248,6 +238,7 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 		free(records);
 		return NULL;
 	}
+	printf("15\n");
 	return ret;
 }
 

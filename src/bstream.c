@@ -139,6 +139,32 @@ bstream_t **bstream_split_str(bstream_t haystack,bstream_t delimiter){
 	return ret;
 }
 
+bstream_t **bstream_split_count(bstream_t haystack,int count){
+	//First we figure out how many streams we're actually splitting into
+	const int n=(haystack.length/count)+(haystack.length%count?1:0);
+	bstream_t haystack_mod;
+	haystack_mod.length=haystack.length;
+	memcpy(haystack_mod.stream,haystack.stream,haystack.length);
+
+	bstream_t **ret=calloc(n,sizeof(bstream_t*));
+	if(!ret)
+		return NULL;
+
+	for(int i=0;i<n;i++){
+		bstream_t subset=bstream_subset(haystack_mod,0,count);
+		ret[i]=bstream_cnew(&subset);
+		free(subset.stream);
+		if(!ret[i]){
+			for(int j=0;j<=i;j++)
+				bstream_destroy(ret[j]);
+			free(ret);
+			return NULL;
+		}
+		haystack_mod=bstream_subset(haystack_mod,count,-1);
+	}
+	return ret;
+}
+
 bstream_t bstream_subset(bstream_t haystack,int start,int length){
     bstream_t ret;
 	if(length==0){
@@ -205,4 +231,9 @@ bool bstream_cmp(bstream_t first,bstream_t second){
 		if(first.stream[i]!=second.stream[i])
 			return false;
 	return true;
+}
+
+void bstream_print(bstream_t haystack){
+	for(size_t i=0;i<haystack.length;i++)
+		printf("%c",haystack.stream[i]);
 }

@@ -29,6 +29,7 @@ bstream_t *bstream_append(bstream_t*,char);
 char bstream_pop(bstream_t*);
 bstream_t **bstream_split(bstream_t,char);
 bstream_t **bstream_split_str(bstream_t,bstream_t);
+bstream_t **bstream_split_count(bstream_t,int); //Splits off every n characters
 bstream_t bstream_subset(bstream_t,int,int);
 int bstream_find(bstream_t,char);
 int bstream_find_str(bstream_t,bstream_t);
@@ -42,5 +43,8 @@ int btoi(bstream_t);
 //other operations
 //are the streams equal?
 bool bstream_cmp(bstream_t,bstream_t);
+
+//debug print a bstream
+void bstream_print(bstream_t);
 
 #endif

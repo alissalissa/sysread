@@ -305,3 +305,58 @@ bool write_lsvlabel(const char *path){
 	fclose(output);
 	return true;
 }
+
+bool write_lsmissing(const char *path){
+	const int32_t record_type=LSMVR_RECORD_TYPE;
+	const int32_t subtype=LSMVR_SUBTYPE;
+	const int32_t size_check=1;
+
+	bstream_t *var_one_name=bstream_char_new("foo",3);
+	bstream_t *var_two_name=bstream_char_new("foobar",6);
+	const char n_missing_values=2;
+	const int32_t value_length=8;
+	char *values_one[]={
+		"abcdefgh",
+		"ijklmnop"
+	};
+	char *values_two[]={
+		"qrstuvwx",
+		"yzabcdef"
+	};
+
+	int32_t count=var_one_name->length+var_two_name->length;
+	count+=sizeof(int32_t)*4;
+	count+=sizeof(char)*2;
+	count+=32;
+
+	FILE *output=fopen(path,"wb");
+	if(!output)
+		return false;
+
+	fwrite(&record_type,sizeof(int32_t),1,output);
+	fwrite(&subtype,sizeof(int32_t),1,output);
+	fwrite(&size_check,sizeof(int32_t),1,output);
+	fwrite(&count,sizeof(int32_t),1,output);
+
+	fwrite(&var_one_name->length,sizeof(int32_t),1,output);
+	fwrite(var_one_name->stream,sizeof(char),var_one_name->length,output);
+	fwrite(&n_missing_values,sizeof(char),1,output);
+	fwrite(&value_length,sizeof(int32_t),1,output);
+	fwrite(values_one[0],sizeof(char),8,output);
+	fwrite(values_one[1],sizeof(char),8,output);
+
+	fwrite(&var_two_name->length,sizeof(int32_t),1,output);
+	fwrite(var_two_name->stream,sizeof(char),var_two_name->length,output);
+	fwrite(&n_missing_values,sizeof(char),1,output);
+	fwrite(&value_length,sizeof(int32_t),1,output);
+	fwrite(values_two[0],sizeof(char),8,output);
+	fwrite(values_two[1],sizeof(char),8,output);
+
+	if(ferror(output)){
+		fclose(output);
+		return false;
+	}
+
+	fclose(output);
+	return true;
+}

@@ -14,6 +14,7 @@
 #include "bstream.h"
 #include "vlsr.h"
 #include "lsvlabel.h"
+#include "lsmissing.h"
 
 bool write_mrset(const char*);
 bool write_epir(const char*);
@@ -23,5 +24,6 @@ bool write_lvnr(const char*);
 bool write_header(const char*);
 bool write_vlsr(const char*);
 bool write_lsvlabel(const char*);
+bool write_lsmissing(const char*);
 
 #endif
