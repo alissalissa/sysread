@@ -106,6 +106,7 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 		return NULL;
 	printf("0\n");
 
+	//Read the record type
 	int32_t record_type=0,subtype=0,size_check=0,count=0;
 	fread(&record_type,sizeof(int32_t),1,handle);
 	if(ferror(handle) || feof(handle) || record_type!=LSMVR_RECORD_TYPE){
@@ -114,6 +115,7 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 	}
 	printf("record_type=%d\n",record_type);
 
+	//Read the subtype
 	fread(&subtype,sizeof(int32_t),1,handle);
 	if(ferror(handle) || feof(handle) || subtype!=LSMVR_SUBTYPE){
 		printf("Corrupted LSMVR subtype...\n");
@@ -121,6 +123,7 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 	}
 	printf("subtype=%d\n",subtype);
 
+	//Check byte size
 	fread(&size_check,sizeof(int32_t),1,handle);
 	if(ferror(handle) || feof(handle) || size_check!=1){
 		printf("Corrupted LSMVR size check...\n");
@@ -128,6 +131,7 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 	}
 	printf("size check=%d\n",size_check);
 
+	//How many bytes total are contained in the subsequent section?
 	fread(&count,sizeof(int32_t),1,handle);
 	if(ferror(handle) || feof(handle)){
 		printf("Corrupted LSMVR...\n");
@@ -138,97 +142,69 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 	int32_t index=0;
 	lsmv_t **records=NULL;
 	int32_t n_records=0;
+	//cycle through {count} bytes
 	while(index<count){
-		n_records++;
-		bstream_t *var_name=bstream_new();
-		fread(&var_name->length,sizeof(int32_t),1,handle);
+		//The first 4 bytes are the length of the current variable name
+		int32_t var_name_length=0;
+		fread(&var_name_length,sizeof(int32_t),1,handle);
+		//TODO handle read failure
+		//Increment the index
 		index+=sizeof(int32_t);
+		printf("var_name_length = %d\n",var_name_length);
 
-		var_name=bstream_new_wl(var_name->length);
-		if(!var_name){
-			for(int32_t i=0;i<n_records;i++)
-				lsmv_destroy(records[i]);
-			free(records);
-			return NULL;
-		}
-		fread(var_name->stream,sizeof(char),var_name->length,handle);
-		index+=var_name->length;
+		//read in the actual var name
+		bstream_t *var_name=bstream_new_wl(var_name_length);
+		fread(var_name->stream,sizeof(char),var_name_length,handle);
+		//TODO handle both allocation and read failures
+		//Increment the index
+		index+=var_name_length;
 		printf("var_name = ");
 		bstream_print(*var_name);
 		printf("\n");
 
-		int8_t n_missing_values=0;
-		fread(&n_missing_values,sizeof(int8_t),1,handle);
-		printf("%d missing values\n",n_missing_values);
-		index+=sizeof(int8_t);
-		if(n_missing_values<1 || n_missing_values>3){
-			bstream_destroy(var_name);
-			for(int32_t i=0;i<n_records;i++)
-				lsmv_destroy(records[i]);
-			free(records);
-			return NULL;
-		}
-		printf("6\n");
+		//Read in the number of missing values, stored in a missing byte
+		char n_missing_values=0;
+		fread(&n_missing_values,sizeof(char),1,handle);
+		//TODO handle failure
+		//Increment index
+		index++;
+		//TOOD is n_missing_values within limits?
+		printf("n_missing_values = %d\n",n_missing_values);
 
-		int32_t value_length=0;
-		fread(&value_length,sizeof(int32_t),1,handle);
+		int32_t value_len=0;
+		fread(&value_len,sizeof(int32_t),1,handle);
+		//TODO handle failure
+		//Increment index
 		index+=sizeof(int32_t);
-		if(value_length!=LSMVR_VALUE_LEN){
-			bstream_destroy(var_name);
-			for(int32_t i=0;i<n_records;i++)
-				lsmv_destroy(records[i]);
-			free(records);
-			return NULL;
-		}
-		printf("value length = %d\n",value_length);
+		printf("value_len = %d\n",value_len);
 
-		bstream_t *pre_split_values=bstream_new_wl(value_length*n_missing_values);
-		if(!pre_split_values){
-			bstream_destroy(var_name);
-			for(int32_t i=0;i<n_records;i++)
-				lsmv_destroy(records[i]);
-			free(records);
-			return NULL;
+		//next we read in a stream comprised of n_missing_values of length value_len
+		bstream_t *stream=bstream_new_wl(value_len*n_missing_values);
+		fread(stream->stream,sizeof(char),value_len*n_missing_values,handle);
+		//TODO handle both allocation and read failure possibilities
+		//increment the index
+		index+=(value_len*n_missing_values);
+
+		//Split up the stream
+		bstream_t **values=bstream_split_count(*stream,value_len);
+		//TODO handle failure
+		printf("values {\n");
+		for(char i=0;i<n_missing_values;i++){
+			printf("\t");
+			bstream_print(*(values[i]));
+			printf("\n");
 		}
-		fread(pre_split_values->stream,sizeof(char),value_length*n_missing_values,handle);
-		index+=(value_length*n_missing_values);
-		if(!pre_split_values){
-			bstream_destroy(var_name);
-			for(int32_t i=0;i<n_records;i++)
-				lsmv_destroy(records[i]);
-			free(records);
-			return NULL;
-		}
-		printf("total value = ");
-		bstream_print(*pre_split_values);
-		printf("\n");
-		bstream_t **split_values=bstream_split_count(*pre_split_values,value_length);
-		records=(lsmv_t**)realloc(records,n_records*sizeof(lsmv_t*));
-		if(!records){
-			bstream_destroy(pre_split_values);
-			bstream_destroy(var_name);
-			for(int32_t i=0;i<n_records;i++)
-				lsmv_destroy(records[i]);
-			free(records);
-			for(int8_t j=0;j<=n_missing_values;j++)
-				bstream_destroy(split_values[j]);
-			free(split_values);
-			return NULL;
-		}
-		printf("13\n");
-		records[n_records-1]=lsmv_new(var_name,n_missing_values,split_values);
-		bstream_destroy(pre_split_values);
+		printf("}\n");
+
+		//Add space for a new record
+		n_records++;
+		records=(lsmv_t**)((records)?realloc(records,sizeof(lsmv_t*)*n_records):calloc(1,sizeof(lsmv_t*)));
+		//TODO handle allocation failure
+		records[n_records-1]=lsmv_new(var_name,n_missing_values,values);
 		bstream_destroy(var_name);
-		for(int8_t j=0;j<=n_missing_values;j++)
-			bstream_destroy(split_values[j]);
-		free(split_values);
-		if(!records[n_records-1]){
-			for(int32_t i=0;i<n_records;i++)
-				lsmv_destroy(records[i]);
-			free(records);
-			return NULL;
-		}
-		printf("14\n");
+		for(char i=0;i<n_missing_values;i++)
+			bstream_destroy(values[i]);
+		free(values);
 	}
 
 	lsmvr_t *ret=lsmvr_new(record_type,subtype,n_records,records);
