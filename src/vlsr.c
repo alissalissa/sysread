@@ -27,7 +27,6 @@ vlsr_t *vlsr_new(int32_t record_type,int32_t subtype,int32_t n,bstream_t *keys,b
 	return ret;
 }
 
-//TODO add memory allocation error handling
 vlsr_t *vlsr_fnew(FILE *handle){
 	if(!handle)
 		return NULL;
@@ -63,6 +62,10 @@ vlsr_t *vlsr_fnew(FILE *handle){
 	}
 	printf("%d bytes in the stream\n",byte_count);
 	bstream_t *vlsr_stream=bstream_new_wl(byte_count);
+	if(!vlsr_stream){
+		printf("Error allocating memory for vlsr_stream...\n");
+		return NULL;
+	}
 	size_t read_count=fread(vlsr_stream->stream,sizeof(char),vlsr_stream->length,handle);
 	printf("%d bytes read in by fread\n",read_count);
 	if(ferror(handle)){
@@ -73,23 +76,71 @@ vlsr_t *vlsr_fnew(FILE *handle){
 		printf("End of file reached!\n");
 		return NULL;
 	}
-	//FIXME The whole stream isn't being printed because it includes a \0
-	printf("Whole stream:\n\n%s\n\n",bstream_cstr(*vlsr_stream));
+	printf("Whole stream: ");
+	bstream_print(*vlsr_stream);
+	printf("\n");
 
 	bstream_t *delimiter=bstream_new_wl(2);
+	if(!delimiter){
+		bstream_destroy(vlsr_stream);
+		return NULL;
+	}
 	delimiter->stream[0]=(char)0x00;
 	delimiter->stream[1]=(char)0x09;
 
 	int number_of_pairs=bstream_count_str(*vlsr_stream,*delimiter)+1;
 	bstream_t **pairs=bstream_split_str(*vlsr_stream,*delimiter);
+	if(!pairs){
+		bstream_destroy(delimiter);
+		bstream_destroy(vlsr_stream);
+		return NULL;
+	}
+
 	bstream_t *keys=(bstream_t*)calloc(number_of_pairs,sizeof(bstream_t));
+	if(!keys){
+		bstream_destroy(delimiter);
+		bstream_destroy(vlsr_stream);
+		for(int i=0;i<number_of_pairs;i++)
+			bstream_destroy(pairs[i]);
+		free(pairs);
+		return NULL;
+	}
+
 	bstream_t *values=(bstream_t*)calloc(number_of_pairs,sizeof(bstream_t));
+	if(!values){
+		bstream_destroy(delimiter);
+		bstream_destroy(vlsr_stream);
+		for(int i=0;i<number_of_pairs;i++)
+			bstream_destroy(pairs[i]);
+		free(pairs);
+		free(keys);
+		return NULL;
+	}
+	
 	for(int i=0;i<number_of_pairs;i++){
 		int split_point=bstream_find(*(pairs[i]),'=');
 		bstream_t temp_key=bstream_subset(*(pairs[i]),0,split_point);
 		bstream_t temp_value=bstream_subset(*(pairs[i]),split_point+1,-1);
+		if(!temp_key.stream || !temp_value.stream){
+			bstream_destroy(delimiter);
+			bstream_destroy(vlsr_stream);
+			for(int i=0;i<number_of_pairs;i++)
+				bstream_destroy(pairs[i]);
+			free(pairs);
+			free(keys);
+			return NULL;
+		}
 		keys[i].stream=calloc(temp_key.length,sizeof(char));
 		values[i].stream=calloc(temp_value.length,sizeof(char));
+		if(!keys[i].stream || !values[i].stream){
+			bstream_destroy(delimiter);
+			bstream_destroy(vlsr_stream);
+			for(int i=0;i<number_of_pairs;i++)
+				bstream_destroy(pairs[i]);
+			free(pairs);
+			free(keys);
+			return NULL;
+		}
 		keys[i].length=temp_key.length;
 		values[i].length=temp_value.length;
 		memcpy(keys[i].stream,temp_key.stream,temp_key.length);

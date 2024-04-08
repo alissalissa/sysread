@@ -112,7 +112,6 @@ bstream_t **bstream_split(bstream_t haystack,char delimiter){
     return dest;
 }
 
-//TODO insert error checking
 bstream_t **bstream_split_str(bstream_t haystack,bstream_t delimiter){
 	int count=bstream_count_str(haystack,delimiter);
 	bstream_t **ret=(bstream_t**)calloc(count+1,sizeof(bstream_t*));
@@ -121,6 +120,8 @@ bstream_t **bstream_split_str(bstream_t haystack,bstream_t delimiter){
 		return NULL;
 	}
 	bstream_t *modable=bstream_cnew(&haystack);
+	if(!modable)
+		return NULL;
 	for(int i=0;i<count;i++){
 		int point=bstream_find_str(*modable,delimiter);
 		ret[i]=bstream_new_wl(point);
@@ -174,6 +175,8 @@ bstream_t bstream_subset(bstream_t haystack,int start,int length){
 	}
     ret.length=(length>=0?length:(haystack.length-start));
     ret.stream=(char*)calloc((length>=0)?length:(haystack.length-start),sizeof(char));
+	if(!ret.stream)
+		return ret;
     for(int i=start;i<((length>=0 && length<=(haystack.length-start))?(start+length):(haystack.length));i++)
         ret.stream[i-start]=haystack.stream[i];
     return ret;
