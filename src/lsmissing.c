@@ -147,15 +147,31 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 		//The first 4 bytes are the length of the current variable name
 		int32_t var_name_length=0;
 		fread(&var_name_length,sizeof(int32_t),1,handle);
-		//TODO handle read failure
-		//Increment the index
+		if(ferror(handle) || feof(handle)){
+			printf("Error reading lsmissing var name length...\n");
+			return NULL;
+		}
 		index+=sizeof(int32_t);
 		printf("var_name_length = %d\n",var_name_length);
 
 		//read in the actual var name
 		bstream_t *var_name=bstream_new_wl(var_name_length);
+		if(!var_name){
+			printf("Error allocating lsmissing var name memory...\n");
+			return NULL;
+		}
 		fread(var_name->stream,sizeof(char),var_name_length,handle);
-		//TODO handle both allocation and read failures
+		if(ferror(handle) || feof(handle)){
+			printf("lsmissing file section corrupt...\n");
+			if(var_name && var_name->stream)
+				bstream_destroy(var_name);
+			if(records){
+				for(int i=0;i<n_records;i++)
+					lsmv_destroy(records[i]);
+				free(records);
+			}
+			return NULL;
+		}
 		//Increment the index
 		index+=var_name_length;
 		printf("var_name = ");
@@ -165,7 +181,16 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 		//Read in the number of missing values, stored in a missing byte
 		char n_missing_values=0;
 		fread(&n_missing_values,sizeof(char),1,handle);
-		//TODO handle failure
+		if(ferror(handle) || feof(handle)){
+			printf("lsmissing file section corrupt...\n");
+			bstream_destroy(var_name);
+			if(records){
+				for(int i=0;i<n_records;i++)
+					lsmv_destroy(records[i]);
+				free(records);
+			}
+			return NULL;
+		}
 		//Increment index
 		index++;
 		//TOOD is n_missing_values within limits?
@@ -173,21 +198,60 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 
 		int32_t value_len=0;
 		fread(&value_len,sizeof(int32_t),1,handle);
-		//TODO handle failure
+		if(ferror(handle) || feof(handle)){
+			printf("lsmissing file section corrupt...\n");
+			bstream_destroy(var_name);
+			if(records){
+				for(int i=0;i<n_records;i++)
+					lsmv_destroy(records[i]);
+				free(records);
+			}
+			return NULL;
+		}
 		//Increment index
 		index+=sizeof(int32_t);
 		printf("value_len = %d\n",value_len);
 
 		//next we read in a stream comprised of n_missing_values of length value_len
 		bstream_t *stream=bstream_new_wl(value_len*n_missing_values);
+		if(!stream){
+			printf("lsmissing error allocating stream memory...\n");
+			bstream_destroy(var_name);
+			if(records){
+				for(int i=0;i<n_records;i++)
+					lsmv_destroy(records[i]);
+				free(records);
+			}
+			return NULL;
+		}
 		fread(stream->stream,sizeof(char),value_len*n_missing_values,handle);
-		//TODO handle both allocation and read failure possibilities
+		if(ferror(handle) || feof(handle)){
+			printf("lsmissing error reading stream values...\n");
+			bstream_destroy(var_name);
+			if(records){
+				for(int i=0;i<n_records;i++)
+					lsmv_destroy(records[i]);
+				free(records);
+			}
+			bstream_destroy(stream);
+			return NULL;
+		}
 		//increment the index
 		index+=(value_len*n_missing_values);
 
 		//Split up the stream
 		bstream_t **values=bstream_split_count(*stream,value_len);
-		//TODO handle failure
+		if(!values){
+			printf("lsmissing error allocating value memory...\n");
+			bstream_destroy(var_name);
+			if(records){
+				for(int i=0;i<n_records;i++)
+					lsmv_destroy(records[i]);
+				free(records);
+			}
+			bstream_destroy(stream);
+			return NULL;
+		}
 		printf("values {\n");
 		for(char i=0;i<n_missing_values;i++){
 			printf("\t");
@@ -199,8 +263,37 @@ lsmvr_t *lsmvr_fnew(FILE *handle){
 		//Add space for a new record
 		n_records++;
 		records=(lsmv_t**)((records)?realloc(records,sizeof(lsmv_t*)*n_records):calloc(1,sizeof(lsmv_t*)));
-		//TODO handle allocation failure
+		if(!records){
+			printf("error allocating lsmissing record memory...\n");
+			bstream_destroy(var_name);
+			if(records){
+				for(int i=0;i<n_records;i++)
+					lsmv_destroy(records[i]);
+				free(records);
+			}
+			bstream_destroy(stream);
+			for(char j=0;j<n_missing_values;j++)
+				if(values[j])
+					bstream_destroy(values[j]);
+			free(values);
+			return NULL;
+		}
 		records[n_records-1]=lsmv_new(var_name,n_missing_values,values);
+		if(!records[n_records-1]){
+			printf("error allocating lsmissing record memory...\n");
+			bstream_destroy(var_name);
+			if(records){
+				for(int i=0;i<n_records;i++)
+					lsmv_destroy(records[i]);
+				free(records);
+			}
+			bstream_destroy(stream);
+			for(char j=0;j<n_missing_values;j++)
+				if(values[j])
+					bstream_destroy(values[j]);
+			free(values);
+			return NULL;
+		}
 		bstream_destroy(var_name);
 		for(char i=0;i<n_missing_values;i++)
 			bstream_destroy(values[i]);
