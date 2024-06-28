@@ -2,9 +2,9 @@
 
 source_dir=bin/
 
-default: compile
+default: all
 
-compile:
+all:
 	$(MAKE) -C $(source_dir)
 
 clean:
