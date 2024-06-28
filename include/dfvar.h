@@ -5,6 +5,7 @@
 #ifndef SYSREAD_DFVAR_H
 #define SYSREAD_DFVAR_H
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>

@@ -17,3 +17,16 @@ dfvar_t *dfvar_new(int32_t record_type,int32_t subtype,int32_t count,char *attri
 	ret->constructed=true;
 	return ret;
 }
+
+bool dfvar_destroy(dfvar_t *haystack){
+	assert(haystack);
+	if(!haystack->constructed)
+		return false;
+	
+	haystack->constructed=false;
+	if(haystack->attributes && haystack->count>=1)
+		free(haystack->attributes);
+	
+	free(haystack);
+	return true;
+}
