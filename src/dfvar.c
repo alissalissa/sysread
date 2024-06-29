@@ -9,10 +9,13 @@ dfvar_t *dfvar_new(int32_t record_type,int32_t subtype,int32_t count,char *attri
 	
 	ret->record_type=record_type;
 	ret->subtype=subtype;
-	ret->count=count;
 	
-	ret->attributes=(char*)calloc(ret->count,sizeof(char));
-	memcpy(ret->attributes,attributes,ret->count);
+	ret->attributes=bstream_new_wl(count);
+	memcpy(ret->attributes->stream,attributes,ret->attributes->length);
+	if(!ret->attributes){
+		free(ret);
+		return NULL;
+	}
 	
 	ret->constructed=true;
 	return ret;
@@ -24,8 +27,10 @@ bool dfvar_destroy(dfvar_t *haystack){
 		return false;
 	
 	haystack->constructed=false;
-	if(haystack->attributes && haystack->count>=1)
-		free(haystack->attributes);
+	if(haystack->attributes) {
+		if(!bstream_destroy(haystack->attributes))
+			return false;
+	}
 	
 	free(haystack);
 	return true;

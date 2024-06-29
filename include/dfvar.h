@@ -12,11 +12,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "bstream.h"
+
 typedef struct DFVAR {
 	int32_t record_type;
 	int32_t subtype;
-	int32_t count;
-	char *attributes;
+	bstream_t *attributes;
 	bool constructed;
 }dfvar_t;
 
