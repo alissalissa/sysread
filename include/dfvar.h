@@ -21,7 +21,7 @@ typedef struct DFVAR {
 	bool constructed;
 }dfvar_t;
 
-dfvar_t *dfvar_new(int32_t,int32_t,int32_t,char*);
+dfvar_t *dfvar_new(int32_t,int32_t,bstream_t*);
 dfvar_t *dfvar_fnew(FILE*);
 bool dfvar_destroy(dfvar_t*);
 
