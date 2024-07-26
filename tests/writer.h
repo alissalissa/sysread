@@ -25,5 +25,6 @@ bool write_header(const char*);
 bool write_vlsr(const char*);
 bool write_lsvlabel(const char*);
 bool write_lsmissing(const char*);
+bool write_dfvar(const char*);
 
 #endif

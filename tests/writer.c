@@ -360,3 +360,29 @@ bool write_lsmissing(const char *path){
 	fclose(output);
 	return true;
 }
+
+bool write_dfvar(const char *path){
+	int32_t record_type=7;
+	int32_t subtype=17;
+	int32_t size_check=1;
+	char attributes[]="foobar";
+	int32_t count=6;
+	
+	FILE *handle=fopen(path,"wb");
+	if(!handle)
+		return false;
+	
+	fwrite(&record_type,sizeof(int32_t),1,handle);
+	fwrite(&subtype,sizeof(int32_t),1,handle);
+	fwrite(&size_check,sizeof(int32_t),1,handle);
+	fwrite(&count,sizeof(int32_t),1,handle);
+	fwrite(attributes,sizeof(char),6,handle);
+	
+	if(ferror(handle)){
+		fclose(handle);
+		return false;
+	}
+	
+	fclose(handle);
+	return true;
+}
