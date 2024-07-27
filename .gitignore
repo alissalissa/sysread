@@ -43,3 +43,4 @@ tests/vlsr_test
 tests/lsvlabel_test
 .vscode
 tests/lsmissing_test
+tests/dfvar_test

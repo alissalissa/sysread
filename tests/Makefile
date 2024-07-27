@@ -19,6 +19,7 @@ compile:
 	gcc -g -o vlsr_test -L../bin -Wl,-rpath,../bin -lsysfile -I../include writer.o vlsr_test.c
 	gcc -g -o lsvlabel_test -L../bin -Wl,-rpath,../bin -lsysfile lsvlabel_test.o writer.o `pkg-config --cflags --libs check`
 	gcc -g -o lsmissing_test -I../include -L../bin -Wl,-rpath,../bin -lsysfile writer.o lsmissing_test.c `pkg-config --cflags --libs check`
+	gcc -g -o dfvar_test -I../include -L../bin -Wl,-rpath,../bin -lsysfile writer.o dfvar_test.c `pkg-config --cflags --libs check`
 
 clean:
 	rm *.o *.sys epir_test mrset_test disppar_test svtest lsvlabel_test lvnr_test vlsr_test header_test
