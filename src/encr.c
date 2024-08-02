@@ -19,3 +19,15 @@ encr_t *encr_new(int32_t record_type,int32_t subtype,int64_t ncases){
 	
 	return ret;
 }
+
+bool encr_destroy(encr_t *haystack){
+	if(!haystack)
+		return false;
+	if(!haystack->constructed)
+		return false;
+	
+	haystack->constructed=false;
+	free(haystack);
+	
+	return true;
+}
