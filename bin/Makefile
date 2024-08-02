@@ -2,9 +2,9 @@
 default: compile
 
 #compile
-compile: dfvar.o lsmissing.o lsvlabel.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o sysiinfo.o sysfinfo.o svset.o
+compile: encr.o dfvar.o lsmissing.o lsvlabel.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sfutil.o sysheader.o sysvar.o sysvl.o sysdoc.o sysiinfo.o sysfinfo.o svset.o
 	$(info Linking shared library...)
-	gcc -o libsysfile.so -g dfvar.o lsmissing.o lsvlabel.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sysiinfo.o sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o sysfinfo.o svset.o -shared -fPIC
+	gcc -o libsysfile.so -g encr.o dfvar.o lsmissing.o lsvlabel.o syschare.o vlsr.o lvnr.o disppar.o epir.o bstream.o mrset.o sysiinfo.o sysdoc.o sysvl.o sysvar.o sfutil.o sysheader.o sysfinfo.o svset.o -shared -fPIC
 
 sfutil.o:
 	$(info Compiling sfutil.c...)
@@ -77,6 +77,10 @@ lsmissing.o:
 dfvar.o:
 	$(info Compiling dfvar.c....)
 	gcc -g -c -o dfvar.o -I../include ../src/dfvar.c -fPIC
+
+encr.o:
+	$(info Compiling encr.c.....)
+	gcc -g -c -o encr.o -I../include ../src/encr.c -fPIC
 
 clean:
 	rm *.o *.so
